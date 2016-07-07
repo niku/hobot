@@ -1,0 +1,22 @@
+language: elixir
+sudo: false
+env:
+  global:
+    # Follow other language's environment
+    # e.g.) `RACK_ENV=test` has been setted as Default Environment Variables
+    # https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+    - MIX_ENV=test
+elixir:
+  - 1.3.1
+cache:
+  directories:
+    - _build
+    - deps
+otp_release:
+  - 19.0
+before_script:
+  - mix dialyzer.plt # TODO This sholud be cached if it enable
+script:
+  - mix credo --strict
+  - mix dialyzer --halt-exit-status
+  - mix test
