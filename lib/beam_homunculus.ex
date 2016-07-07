@@ -1,4 +1,8 @@
 defmodule BeamHomunculus do
+  @moduledoc """
+  A bot framework for ErlangVM(beam)
+  """
+
   use Application
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html

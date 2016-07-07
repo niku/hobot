@@ -7,6 +7,8 @@ defmodule BeamHomunculus.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     description: description(),
+     package: package(),
      deps: deps()]
   end
 
@@ -29,5 +31,15 @@ defmodule BeamHomunculus.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     []
+  end
+
+  defp description do
+    "A bot framework for ErlangVM(beam)"
+  end
+
+  defp package do
+    [maintainers: ["niku"],
+     licenses: ["MIT"],
+     links: %{"GitHub" => "https://github.com/niku/beam_homunculus"}]
   end
 end

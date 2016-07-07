@@ -1,6 +1,6 @@
 # BeamHomunculus
 
-**TODO: Add description**
+A bot framework for ErlangVM(beam)
 
 ## Installation
 
