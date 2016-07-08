@@ -10,7 +10,8 @@ defmodule BeamHomunculus.Mixfile do
      description: description(),
      package: package(),
      deps: deps(),
-     dialyzer: dialyzer()]
+     dialyzer: dialyzer(),
+     escript: [main_module: BeamHomunculus.CLI]]
   end
 
   # Configuration for the OTP application
