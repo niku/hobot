@@ -12,10 +12,11 @@ cache:
   directories:
     - _build
     - deps
+    - plt
 otp_release:
   - 19.0
 before_script:
-  - mix dialyzer.plt # TODO This sholud be cached if it enable
+  - mkdir -p plt && mix dialyzer.plt
 script:
   - mix credo --strict
   - mix dialyzer --halt-exit-status
