@@ -31,7 +31,7 @@ defmodule BeamHomunculus.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:ex_doc, ">= 0.0.0", only: :dev},
+    [{:ex_doc, ">= 0.0.0", only: [:dev, :test]},
      {:dialyxir, "~> 0.3.5", only: [:dev, :test]},
      {:credo, "~> 0.4", only: [:dev, :test]}]
   end

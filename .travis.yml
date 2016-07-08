@@ -21,3 +21,8 @@ script:
   - mix credo --strict
   - mix dialyzer --halt-exit-status
   - mix test
+after_success:
+  - mix hex.config username $HEX_USERNAME
+  - mix hex.config key $HEX_KEY
+  - yes | mix hex.publish
+  - mix hex.docs
