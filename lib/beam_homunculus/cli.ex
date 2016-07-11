@@ -26,4 +26,17 @@ defmodule BeamHomunculus.CLI do
                                                                 load: :string]])
     opts
   end
+
+  @doc """
+  Dispatches to a specific command
+  """
+  @spec dispatch(keyword(boolean | String.t)) :: {module, atom, [term]}
+  def dispatch(opts) do
+    keys = Keyword.keys(opts)
+    cond do
+      Enum.member?(keys, :help) -> {BeamHomunculus.Commands, :help, []}
+      Enum.member?(keys, :generate) -> {BeamHomunculus.Commands, :generate, []}
+      true -> {BeamHomunculus.Commands, :run, [opts]}
+    end
+  end
 end
