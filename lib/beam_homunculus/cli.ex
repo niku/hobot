@@ -8,8 +8,10 @@ defmodule BeamHomunculus.CLI do
   """
   @spec main(OptionParser.argv) :: no_return()
   def main(argv) do
-    opts = parse(argv)
-    dispatch(opts)
+    parsed_args = parse(argv)
+    parsed_args
+    |> dispatch
+    |> call
   end
 
   @doc """
@@ -39,4 +41,10 @@ defmodule BeamHomunculus.CLI do
       true -> {BeamHomunculus.Commands, :run, [opts]}
     end
   end
+
+  @doc """
+  Calls command which given a parameter
+  """
+  @spec call({module, atom, [term]}) :: any
+  def call({mod, fun, args}), do: apply(mod, fun, args)
 end
