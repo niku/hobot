@@ -12,6 +12,9 @@ defmodule BeamHomunculus.Commands do
   end
 
   def run(_args) do
-    IO.puts "run" # TODO
+    config = %BeamHomunculus.BotSupervisor.Config{}
+    {:ok, pid} = Supervisor.start_child(BeamHomunculus.Supervisor, [config])
+    IO.puts "run: #{inspect pid}"
+    Process.sleep(:infinity)
   end
 end
