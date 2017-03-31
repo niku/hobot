@@ -1,8 +1,8 @@
-defmodule BeamHomunculus.Mixfile do
+defmodule Hobot.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :beam_homunculus,
+    [app: :hobot,
      version: "0.1.0",
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
@@ -11,7 +11,7 @@ defmodule BeamHomunculus.Mixfile do
      package: package(),
      deps: deps(),
      dialyzer: dialyzer(),
-     escript: [main_module: BeamHomunculus.CLI]]
+     escript: [main_module: Hobot.CLI]]
   end
 
   # Configuration for the OTP application
@@ -19,7 +19,7 @@ defmodule BeamHomunculus.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [applications: [:logger],
-     mod: {BeamHomunculus, []}]
+     mod: {Hobot, []}]
   end
 
   # Dependencies can be Hex packages:
@@ -44,7 +44,7 @@ defmodule BeamHomunculus.Mixfile do
   defp package do
     [maintainers: ["niku"],
      licenses: ["MIT"],
-     links: %{"GitHub" => "https://github.com/niku/beam_homunculus"}]
+     links: %{"GitHub" => "https://github.com/niku/hobot"}]
   end
 
   defp dialyzer do

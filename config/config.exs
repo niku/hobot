@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :beam_homunculus, key: :value
+#     config :hobot, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:beam_homunculus, :key)
+#     Application.get_env(:hobot, :key)
 #
 # Or configure a 3rd-party app:
 #

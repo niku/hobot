@@ -1,4 +1,4 @@
-defmodule BeamHomunculus do
+defmodule Hobot do
   @moduledoc """
   A bot framework for ErlangVM(beam)
   """
@@ -12,14 +12,14 @@ defmodule BeamHomunculus do
 
     # Define workers and child supervisors to be supervised
     children = [
-      # Starts a worker by calling: BeamHomunculus.Worker.start_link(arg1, arg2, arg3)
-      # worker(BeamHomunculus.Worker, [arg1, arg2, arg3]),
-      supervisor(BeamHomunculus.BotSupervisor, [], restart: :transient)
+      # Starts a worker by calling: Hobot.Worker.start_link(arg1, arg2, arg3)
+      # worker(Hobot.Worker, [arg1, arg2, arg3]),
+      supervisor(Hobot.BotSupervisor, [], restart: :transient)
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :simple_one_for_one, name: BeamHomunculus.Supervisor]
+    opts = [strategy: :simple_one_for_one, name: Hobot.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

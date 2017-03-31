@@ -1,6 +1,6 @@
-defmodule BeamHomunculusTest do
+defmodule HobotTest do
   use ExUnit.Case
-  doctest BeamHomunculus
+  doctest Hobot
 
   test "the truth" do
     assert 1 + 1 == 2

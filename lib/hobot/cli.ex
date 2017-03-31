@@ -1,4 +1,4 @@
-defmodule BeamHomunculus.CLI do
+defmodule Hobot.CLI do
   @moduledoc """
   This module contains functions to parse command line and dispatch to commands.
   """
@@ -36,9 +36,9 @@ defmodule BeamHomunculus.CLI do
   def dispatch(opts) do
     keys = Keyword.keys(opts)
     cond do
-      Enum.member?(keys, :help) -> {BeamHomunculus.Commands, :help, []}
-      Enum.member?(keys, :generate) -> {BeamHomunculus.Commands, :generate, []}
-      true -> {BeamHomunculus.Commands, :run, [opts]}
+      Enum.member?(keys, :help) -> {Hobot.Commands, :help, []}
+      Enum.member?(keys, :generate) -> {Hobot.Commands, :generate, []}
+      true -> {Hobot.Commands, :run, [opts]}
     end
   end
 

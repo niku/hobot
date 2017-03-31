@@ -1,4 +1,4 @@
-defmodule BeamHomunculus.BotSupervisor do
+defmodule Hobot.BotSupervisor do
   use Supervisor
 
   defmodule Config do
@@ -6,7 +6,7 @@ defmodule BeamHomunculus.BotSupervisor do
     A config for a bot server
     """
 
-    defstruct adapter: BeamHomunculus.Adapters.Shell, brain: nil, handler: [], action: []
+    defstruct adapter: Hobot.Adapters.Shell, brain: nil, handler: [], action: []
   end
 
   def start_link(config = %Config{}) do
@@ -15,7 +15,7 @@ defmodule BeamHomunculus.BotSupervisor do
 
   def init(config) do
     children = [
-      worker(BeamHomunculus.Bot, [config]),
+      worker(Hobot.Bot, [config]),
       worker(Task, [Stream, :run, [config.adapter.do_input([])]])
     ]
 

@@ -1,9 +1,9 @@
-defmodule BeamHomunculus.Adapters.Shell do
+defmodule Hobot.Adapters.Shell do
   @moduledoc """
   Adapter between bot and shell
   """
 
-  use BeamHomunculus.Adapter
+  use Hobot.Adapter
 
   def input(_config \\ []) do
     stream = Stream.repeatedly(fn -> IO.gets "> " end)

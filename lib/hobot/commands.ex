@@ -1,4 +1,4 @@
-defmodule BeamHomunculus.Commands do
+defmodule Hobot.Commands do
   @moduledoc """
   This module contains functions as command
   """
@@ -12,8 +12,8 @@ defmodule BeamHomunculus.Commands do
   end
 
   def run(_args) do
-    config = %BeamHomunculus.BotSupervisor.Config{}
-    {:ok, pid} = Supervisor.start_child(BeamHomunculus.Supervisor, [config])
+    config = %Hobot.BotSupervisor.Config{}
+    {:ok, pid} = Supervisor.start_child(Hobot.Supervisor, [config])
     IO.puts "run: #{inspect pid}"
     Process.sleep(:infinity)
   end

@@ -1,4 +1,4 @@
-defmodule BeamHomunculus.Adapter do
+defmodule Hobot.Adapter do
   @moduledoc """
   A connection adapter between from the bot to an outer environment
   """
@@ -11,11 +11,11 @@ defmodule BeamHomunculus.Adapter do
 
   defmacro __using__(opts) do
     quote do
-      @behaviour BeamHomunculus.Adapter
+      @behaviour Hobot.Adapter
 
       @doc false
       def do_input(config) do
-        Stream.each(input(config), &BeamHomunculus.Bot.input/1)
+        Stream.each(input(config), &Hobot.Bot.input/1)
       end
 
       @doc false
