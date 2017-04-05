@@ -13,7 +13,7 @@ defmodule Hobot.Subscriber do
       use GenServer
 
       @doc false
-      def do_subscribe(topic), do: Hobot.subscribe(topic)
+      def do_subscribe(topic), do: Hobot.subscribe(1, topic)
 
       @doc false
       def do_handle(topic, data, state) do

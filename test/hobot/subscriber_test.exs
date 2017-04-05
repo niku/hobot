@@ -20,7 +20,7 @@ defmodule Hobot.SubscriberTest do
     topic = "foo"
     data = "Hello world!"
     TestSubscriber.start_link(topic, self())
-    Hobot.publish(topic, data)
+    Hobot.publish(1, topic, data)
     assert_receive {^topic, ^data}
   end
 
@@ -28,7 +28,7 @@ defmodule Hobot.SubscriberTest do
     topic = "foo"
     data = "Hello world!"
     TestSubscriber.start_link(topic, self())
-    Hobot.publish("bar", data)
+    Hobot.publish(1, "bar", data)
     refute_receive _
   end
 
@@ -38,11 +38,11 @@ defmodule Hobot.SubscriberTest do
     TestSubscriber.start_link(topics, self())
 
     for topic <- topics do
-      Hobot.publish(topic, data)
+      Hobot.publish(1, topic, data)
       assert_receive {^topic, ^data}
     end
 
-    Hobot.publish("baz", "do not receive it")
+    Hobot.publish(1, "baz", "do not receive it")
     refute_receive _
   end
 end

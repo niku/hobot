@@ -5,11 +5,11 @@ defmodule Hobot.PublisherTest do
     use Hobot.Publisher
 
     def publish(topic, data) do
-      do_publish(topic, data)
+      do_publish(1, topic, data)
     end
   end
 
-  describe "Publisher.publish/2" do
+  describe "Publisher.publish/3" do
     test "first argument is binary" do
       assert TestPublisher.publish("foo", [1,2,3]) == :ok
     end
