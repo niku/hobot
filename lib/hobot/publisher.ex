@@ -12,7 +12,7 @@ defmodule Hobot.Publisher do
 
       @doc false
       def do_publish(topic, data) when is_binary(topic) do
-        Hobot.Broker.publish(topic, data)
+        Hobot.publish(topic, data)
       end
     end
   end

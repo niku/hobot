@@ -12,7 +12,7 @@ defmodule Hobot.Application do
     children = [
       # Starts a worker by calling: Hobot.Worker.start_link(arg1, arg2, arg3)
       # worker(Hobot.Worker, [arg1, arg2, arg3]),
-      worker(Hobot.Broker, [])
+      worker(Hobot, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

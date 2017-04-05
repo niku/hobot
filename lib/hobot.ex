@@ -1,18 +1,16 @@
 defmodule Hobot do
-  @moduledoc """
-  A bot framework for ErlangVM(beam)
-  """
+  def start_link do
+    Registry.start_link(:duplicate, __MODULE__, [partitions: System.schedulers_online()])
+  end
 
-  @doc """
-  Hello world.
+  def subscribe(topic) do
+    Registry.register(__MODULE__, topic, [])
+  end
 
-  ## Examples
-
-      iex> Hobot.hello
-      :world
-
-  """
-  def hello do
-    :world
+  def publish(topic, data) do
+    message = {:broadcast, topic, data}
+    Registry.dispatch(__MODULE__, topic, fn entries ->
+      for {pid, _} <- entries, do: GenServer.cast(pid, message)
+    end)
   end
 end
