@@ -1,4 +1,8 @@
 defmodule Hobot do
+  @moduledoc """
+  A bot framework for ErlangVM(beam)
+  """
+
   def start_link do
     Registry.start_link(:duplicate, __MODULE__, [partitions: System.schedulers_online()])
   end
