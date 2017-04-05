@@ -18,9 +18,7 @@ otp_release:
 before_script:
   - mkdir -p plt && mix dialyzer.plt
 script:
-# `@lint false` does not work in a macro at credo 0.4.7
-#  - mix credo --strict
-  - mix credo
+  - mix credo --strict
   - mix dialyzer --halt-exit-status
   - mix test
 after_success:
