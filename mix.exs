@@ -10,8 +10,7 @@ defmodule Hobot.Mixfile do
      description: description(),
      package: package(),
      deps: deps(),
-     dialyzer: dialyzer(),
-     escript: [main_module: Hobot.CLI]]
+     dialyzer: dialyzer()]
   end
 
   # Configuration for the OTP application
