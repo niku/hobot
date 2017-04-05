@@ -48,10 +48,6 @@ defmodule Hobot.Mixfile do
   end
 
   defp dialyzer do
-    if System.get_env("TRAVIS") do
-      [plt_file: Path.join("plt", ".dialyxir_core_#{:erlang.system_info(:otp_release)}_#{System.version()}.plt")]
-    else
-      []
-    end
+    []
   end
 end

@@ -15,8 +15,6 @@ cache:
     - plt
 otp_release:
   - 19.3
-before_script:
-  - mkdir -p plt && mix dialyzer.plt
 script:
   - mix credo --strict
   - mix dialyzer --halt-exit-status
