@@ -8,7 +8,7 @@ defmodule HobotTest do
     use GenServer
 
     def init({topic, callback_pid}) do
-      Hobot.subscribe(1, topic)
+      Hobot.subscribe(topic)
       {:ok, callback_pid}
     end
 
@@ -18,7 +18,7 @@ defmodule HobotTest do
     end
 
     def handle_call({:unsubscribe, topic}, _from, callback_pid) do
-      Hobot.unsubscribe(1, topic)
+      Hobot.unsubscribe(topic)
       {:reply, :ok, callback_pid}
     end
   end
@@ -27,7 +27,7 @@ defmodule HobotTest do
     use GenServer
 
     def init({topic, callback_pid}) do
-      Hobot.subscribe(1, topic)
+      Hobot.subscribe(topic)
       {:ok, callback_pid}
     end
 
@@ -46,7 +46,7 @@ defmodule HobotTest do
     use GenServer
 
     def init(topic) do
-      Hobot.subscribe(1, topic)
+      Hobot.subscribe(topic)
       {:ok, []}
     end
 
@@ -66,7 +66,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
 
     data = "Hello world!"
-    :ok = Hobot.publish(1, topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
   end
 
@@ -75,7 +75,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
 
     data = "Hello world!"
-    :ok = Hobot.publish(1, "bar", data)
+    :ok = Hobot.publish("bar", data)
     refute_receive _anything
   end
 
@@ -85,7 +85,7 @@ defmodule HobotTest do
     GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
-    :ok = Hobot.publish(1, "bar", data)
+    :ok = Hobot.publish("bar", data)
     refute_receive _anything
   end
 
@@ -95,7 +95,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
 
     data = "Hello world!"
-    :ok = Hobot.publish(1, topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
 
     # Waiting for the process crashed
@@ -106,7 +106,7 @@ defmodule HobotTest do
     end
 
     data = "Hello world again!"
-    :ok = Hobot.publish(1, topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
   end
 
@@ -117,7 +117,7 @@ defmodule HobotTest do
 
     for _times <- 1..1000 do
       data = "Hello world!"
-      :ok = Hobot.publish(1, topic, data)
+      :ok = Hobot.publish(topic, data)
       assert_receive {:broadcast, ^topic, ^data}, 1 # timeout 1ms
     end
   end
@@ -135,7 +135,7 @@ defmodule HobotTest do
     100 = length(Registry.lookup(Hobot, topic))
 
     data = "Hello world!"
-    :ok = Hobot.publish(1, topic, data)
+    :ok = Hobot.publish(topic, data)
 
     Process.sleep(10)
 
