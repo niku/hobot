@@ -11,6 +11,10 @@ defmodule Hobot do
     Registry.register(__MODULE__, topic, api_version)
   end
 
+  def unsubscribe(api_version, topic) when api_version === 1 do
+    Registry.unregister(__MODULE__, topic)
+  end
+
   def publish(api_version, topic, data) when api_version === 1 do
     Registry.dispatch(__MODULE__, topic, fn entries ->
       for {pid, api_version_on_subscribe} <- entries do

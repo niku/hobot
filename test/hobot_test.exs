@@ -16,6 +16,11 @@ defmodule HobotTest do
       send(callback_pid, message)
       {:noreply, callback_pid}
     end
+
+    def handle_call({:unsubscribe, topic}, _from, callback_pid) do
+      Hobot.unsubscribe(1, topic)
+      {:reply, :ok, callback_pid}
+    end
   end
 
   defmodule CrashSubscriber do
@@ -68,6 +73,16 @@ defmodule HobotTest do
   test "A subscriber receives no message which was published to a topic which didn't subscribe" do
     topic = "foo"
     {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    data = "Hello world!"
+    :ok = Hobot.publish(1, "bar", data)
+    refute_receive _anything
+  end
+
+  test "A subscriber receives no message if subscriber has unsubscrebed the topic" do
+    topic = "foo"
+    {:ok, subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+    GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
     :ok = Hobot.publish(1, "bar", data)
