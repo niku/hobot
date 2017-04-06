@@ -15,7 +15,8 @@ defmodule Hobot do
     Registry.dispatch(__MODULE__, topic, fn entries ->
       for {pid, api_version_on_subscribe} <- entries do
         case api_version_on_subscribe do
-          # For backward compatibility, version numbers is going to be added if messaging definition is updated.
+          # For backward compatibility,
+          # version numbers is going to be added if messaging definition is updated.
           1 ->
             message = {:broadcast, topic, data}
             GenServer.cast(pid, message)
