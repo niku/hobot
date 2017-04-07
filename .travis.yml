@@ -1,5 +1,9 @@
 language: elixir
 sudo: false
+otp_release:
+  - 19.3
+elixir:
+  - 1.4.2
 env:
   global:
     - HEX_USERNAME=niku
@@ -7,14 +11,10 @@ env:
     # e.g.) `RACK_ENV=test` has been setted as Default Environment Variables
     # https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
     - MIX_ENV=test
-elixir:
-  - 1.4.2
 cache:
   directories:
     - _build
     - deps
-otp_release:
-  - 19.3
 script:
   - mix credo --strict
   - mix dialyzer --halt-exit-status
