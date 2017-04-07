@@ -13,7 +13,6 @@ cache:
   directories:
     - _build
     - deps
-    - plt
 otp_release:
   - 19.3
 script:
