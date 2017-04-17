@@ -126,19 +126,20 @@ defmodule HobotTest do
     # See also
     # https://hexdocs.pm/elixir/1.4.2/Registry.html#module-registrations
 
+    broker = Hobot.Broker
     topic = "foo"
     for _times <- 1..99 do
       {:ok, _crashsubscriber} = GenServer.start(CrashSubscriber, {topic, self()})
     end
     {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
 
-    100 = length(Registry.lookup(Hobot, topic))
+    100 = length(Registry.lookup(broker, topic))
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
 
     Process.sleep(10)
 
-    assert length(Registry.lookup(Hobot, topic)) < 100
+    assert length(Registry.lookup(broker, topic)) < 100
   end
 end

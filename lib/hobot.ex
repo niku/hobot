@@ -3,21 +3,19 @@ defmodule Hobot do
   A bot framework for ErlangVM(beam)
   """
 
-  def start_link do
-    Registry.start_link(:duplicate, __MODULE__, [partitions: System.schedulers_online()])
-  end
+  @broker Hobot.Broker
 
   def subscribe(topic) do
-    Registry.register(__MODULE__, topic, [])
+    Registry.register(@broker, topic, [])
   end
 
   def unsubscribe(topic) do
-    Registry.unregister(__MODULE__, topic)
+    Registry.unregister(@broker, topic)
   end
 
   def publish(topic, data) do
     message = {:broadcast, topic, data}
-    Registry.dispatch(__MODULE__, topic, fn entries ->
+    Registry.dispatch(@broker, topic, fn entries ->
       for {pid, _} <- entries do
         GenServer.cast(pid, message)
       end
