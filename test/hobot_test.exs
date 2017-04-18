@@ -7,6 +7,10 @@ defmodule HobotTest do
   defmodule CallbackSubscriber do
     use GenServer
 
+    def start_link(args) do
+      GenServer.start_link(__MODULE__, args)
+    end
+
     def init({topic, callback_pid}) do
       Hobot.subscribe(topic)
       {:ok, callback_pid}
@@ -25,6 +29,10 @@ defmodule HobotTest do
 
   defmodule CrashSubscriber do
     use GenServer
+
+    def start_link(args) do
+      GenServer.start_link(__MODULE__, args)
+    end
 
     def init({topic, callback_pid}) do
       Hobot.subscribe(topic)
@@ -45,6 +53,10 @@ defmodule HobotTest do
   defmodule SlowSubscriber do
     use GenServer
 
+    def start_link(args) do
+      GenServer.start_link(__MODULE__, args)
+    end
+
     def init(topic) do
       Hobot.subscribe(topic)
       {:ok, []}
@@ -63,7 +75,13 @@ defmodule HobotTest do
 
   test "A subscriber receives message which was published to a topic which subscribed" do
     topic = "foo"
-    {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    import Supervisor.Spec
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
     {:ok, _pid} = Hobot.publish(topic, data)
@@ -72,7 +90,13 @@ defmodule HobotTest do
 
   test "A subscriber receives no message which was published to a topic which didn't subscribe" do
     topic = "foo"
-    {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    import Supervisor.Spec
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
     {:ok, _pid} = Hobot.publish("bar", data)
@@ -81,7 +105,13 @@ defmodule HobotTest do
 
   test "A subscriber receives no message if subscriber has unsubscrebed the topic" do
     topic = "foo"
-    {:ok, subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    import Supervisor.Spec
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
     GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
@@ -91,8 +121,19 @@ defmodule HobotTest do
 
   test "A subscriber receives message even if other subscribers crashed" do
     topic = "foo"
-    {:ok, crashsubscriber} = GenServer.start(CrashSubscriber, {topic, self()})
-    {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    import Supervisor.Spec
+    children = [
+      worker(CrashSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, crashsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
     {:ok, _pid} = Hobot.publish(topic, data)
@@ -112,8 +153,19 @@ defmodule HobotTest do
 
   test "A subscriber receives message with low latency even if other subscribers were slow" do
     topic = "foo"
-    {:ok, _slowsubscriber} = GenServer.start_link(SlowSubscriber, topic)
-    {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    import Supervisor.Spec
+    children = [
+      worker(SlowSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _slowscriber} = Supervisor.start_child(sup_pid, [topic])
+
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     for _times <- 1..1000 do
       data = "Hello world!"
@@ -128,10 +180,21 @@ defmodule HobotTest do
 
     broker = Hobot.Broker
     topic = "foo"
+
+    import Supervisor.Spec
+    children = [
+      worker(CrashSubscriber, [], restart: :temporary)
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
     for _times <- 1..99 do
-      {:ok, _crashsubscriber} = GenServer.start(CrashSubscriber, {topic, self()})
+      {:ok, _crashsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
     end
-    {:ok, _subscriber} = GenServer.start_link(CallbackSubscriber, {topic, self()})
+
+    children = [
+      worker(CallbackSubscriber, [], [])
+    ]
+    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     100 = length(Registry.lookup(broker, topic))
 
