@@ -3,24 +3,20 @@ defmodule Hobot do
   A bot framework for ErlangVM(beam)
   """
 
-  @broker Hobot.Broker
-
   def subscribe(topic) do
-    Registry.register(@broker, topic, [])
+    Registry.register(__MODULE__, topic, [])
   end
 
   def unsubscribe(topic) do
-    Registry.unregister(@broker, topic)
+    Registry.unregister(__MODULE__, topic)
   end
 
   def publish(topic, data) do
-    Task.Supervisor.start_child(Hobot.TaskSupervisor, fn ->
-      message = {:broadcast, topic, data}
-      Registry.dispatch(@broker, topic, fn entries ->
-        for {pid, _} <- entries do
-          GenServer.cast(pid, message)
-        end
-      end)
+    message = {:broadcast, topic, data}
+    Registry.dispatch(__MODULE__, topic, fn entries ->
+      for {pid, _} <- entries do
+        GenServer.cast(pid, message)
+      end
     end)
   end
 end

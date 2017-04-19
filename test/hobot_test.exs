@@ -84,7 +84,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
-    {:ok, _pid} = Hobot.publish(topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
   end
 
@@ -99,7 +99,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
-    {:ok, _pid} = Hobot.publish("bar", data)
+    :ok = Hobot.publish("bar", data)
     refute_receive _anything
   end
 
@@ -115,7 +115,7 @@ defmodule HobotTest do
     GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
-    {:ok, _pid} = Hobot.publish("bar", data)
+    :ok = Hobot.publish("bar", data)
     refute_receive _anything
   end
 
@@ -136,7 +136,7 @@ defmodule HobotTest do
     {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
     data = "Hello world!"
-    {:ok, _pid} = Hobot.publish(topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
 
     # Waiting for the process crashed
@@ -147,7 +147,7 @@ defmodule HobotTest do
     end
 
     data = "Hello world again!"
-    {:ok, _pid} = Hobot.publish(topic, data)
+    :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
   end
 
@@ -169,7 +169,7 @@ defmodule HobotTest do
 
     for _times <- 1..1000 do
       data = "Hello world!"
-      {:ok, _pid} = Hobot.publish(topic, data)
+      :ok = Hobot.publish(topic, data)
       assert_receive {:broadcast, ^topic, ^data}, 1 # timeout 1ms
     end
   end
@@ -178,7 +178,6 @@ defmodule HobotTest do
     # See also
     # https://hexdocs.pm/elixir/1.4.2/Registry.html#module-registrations
 
-    broker = Hobot.Broker
     topic = "foo"
 
     import Supervisor.Spec
@@ -187,7 +186,7 @@ defmodule HobotTest do
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
     for _times <- 1..99 do
-      {:ok, _crashsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+      {:ok, _crachsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
     end
 
     children = [
@@ -196,13 +195,13 @@ defmodule HobotTest do
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
     {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
 
-    100 = length(Registry.lookup(broker, topic))
+    100 = length(Registry.lookup(Hobot, topic))
 
     data = "Hello world!"
-    {:ok, _pid} = Hobot.publish(topic, data)
+    :ok = Hobot.publish(topic, data)
 
     Process.sleep(10)
 
-    assert length(Registry.lookup(broker, topic)) < 100
+    assert length(Registry.lookup(Hobot, topic)) < 100
   end
 end
