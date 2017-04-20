@@ -16,14 +16,14 @@ defmodule HobotTest do
       {:ok, args}
     end
 
-    def handle_cast(message, {_subscribed_topic, filters, callback_pid} = state) do
-      filtered_message = Enum.reduce(filters, message, fn
-        (f, m)  when is_function(f) ->
-          apply(f, [m])
-        ({module, function, default_args}, m) when is_atom(module) and is_atom(function) ->
-          apply(module, function, default_args ++ [m])
+    def handle_cast({:broadcast, topic, data}, {_subscribed_topic, filters, callback_pid} = state) do
+      filtered_message = Enum.reduce(filters, data, fn
+        (f, acc) when is_function(f) ->
+          apply(f, [acc])
+        ({module, function, default_args}, acc) when is_atom(module) and is_atom(function) and is_list(default_args) ->
+          apply(module, function, default_args ++ [acc])
       end)
-      send(callback_pid, filtered_message)
+      send(callback_pid, {:broadcast, topic, filtered_message})
       {:noreply, state}
     end
 
@@ -86,13 +86,13 @@ defmodule HobotTest do
     {:ok, [callback_sup: callback_sup, crash_sup: crash_sup, slow_sup: slow_sup]}
   end
 
-  test "A subscriber receives message which was published to a topic which subscribed", %{callback_sup: callback_sup} do
+  test "A subscriber receives filterd message which was published to a topic which subscribed", %{callback_sup: callback_sup} do
     topic = "foo"
-    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [fn m -> "***" <> m  end], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
-    assert_receive {:broadcast, ^topic, ^data}
+    assert_receive {:broadcast, ^topic, "***Hello world!"}
   end
 
   test "A subscriber receives no message which was published to a topic which didn't subscribe", %{callback_sup: callback_sup} do
