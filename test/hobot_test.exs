@@ -11,14 +11,20 @@ defmodule HobotTest do
       GenServer.start_link(__MODULE__, args)
     end
 
-    def init({topic, callback_pid}) do
+    def init({topic, _filters, _callback_pid} = args) do
       Hobot.subscribe(topic)
-      {:ok, callback_pid}
+      {:ok, args}
     end
 
-    def handle_cast(message, callback_pid) do
-      send(callback_pid, message)
-      {:noreply, callback_pid}
+    def handle_cast(message, {_subscribed_topic, filters, callback_pid} = state) do
+      filtered_message = Enum.reduce(filters, message, fn
+        (f, m)  when is_function(f) ->
+          apply(f, [m])
+        ({module, function}, m) when is_atom(module) and is_atom(function) ->
+          apply(module, function, [m])
+      end)
+      send(callback_pid, filtered_message)
+      {:noreply, state}
     end
 
     def handle_call({:unsubscribe, topic}, _from, callback_pid) do
@@ -81,7 +87,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
@@ -96,7 +102,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish("bar", data)
@@ -111,7 +117,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
     GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
@@ -133,7 +139,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
@@ -165,7 +171,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
 
     for _times <- 1..1000 do
       data = "Hello world!"
@@ -193,7 +199,7 @@ defmodule HobotTest do
       worker(CallbackSubscriber, [], [])
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
 
     100 = length(Registry.lookup(Hobot, topic))
 
