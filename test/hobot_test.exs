@@ -20,8 +20,8 @@ defmodule HobotTest do
       filtered_message = Enum.reduce(filters, message, fn
         (f, m)  when is_function(f) ->
           apply(f, [m])
-        ({module, function}, m) when is_atom(module) and is_atom(function) ->
-          apply(module, function, [m])
+        ({module, function, default_args}, m) when is_atom(module) and is_atom(function) ->
+          apply(module, function, default_args ++ [m])
       end)
       send(callback_pid, filtered_message)
       {:noreply, state}
@@ -77,47 +77,36 @@ defmodule HobotTest do
   setup do
     Application.stop(:hobot)
     :ok = Application.start(:hobot)
-  end
-
-  test "A subscriber receives message which was published to a topic which subscribed" do
-    topic = "foo"
 
     import Supervisor.Spec
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, callback_sup} = Supervisor.start_link([worker(CallbackSubscriber, [], [])], strategy: :simple_one_for_one)
+    {:ok, crash_sup} = Supervisor.start_link([worker(CrashSubscriber, [], [])], strategy: :simple_one_for_one)
+    {:ok, slow_sup} = Supervisor.start_link([worker(SlowSubscriber, [], [])], strategy: :simple_one_for_one)
+
+    {:ok, [callback_sup: callback_sup, crash_sup: crash_sup, slow_sup: slow_sup]}
+  end
+
+  test "A subscriber receives message which was published to a topic which subscribed", %{callback_sup: callback_sup} do
+    topic = "foo"
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
     assert_receive {:broadcast, ^topic, ^data}
   end
 
-  test "A subscriber receives no message which was published to a topic which didn't subscribe" do
+  test "A subscriber receives no message which was published to a topic which didn't subscribe", %{callback_sup: callback_sup} do
     topic = "foo"
-
-    import Supervisor.Spec
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish("bar", data)
     refute_receive _anything
   end
 
-  test "A subscriber receives no message if subscriber has unsubscrebed the topic" do
+  test "A subscriber receives no message if subscriber has unsubscrebed the topic", %{callback_sup: callback_sup} do
     topic = "foo"
-
-    import Supervisor.Spec
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
     GenServer.call(subscriber, {:unsubscribe, topic})
 
     data = "Hello world!"
@@ -125,21 +114,11 @@ defmodule HobotTest do
     refute_receive _anything
   end
 
-  test "A subscriber receives message even if other subscribers crashed" do
+  test "A subscriber receives message even if other subscribers crashed", %{callback_sup: callback_sup, crash_sup: crash_sup} do
     topic = "foo"
 
-    import Supervisor.Spec
-    children = [
-      worker(CrashSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, crashsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
-
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, crashsubscriber} = Supervisor.start_child(crash_sup, [{topic, self()}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     data = "Hello world!"
     :ok = Hobot.publish(topic, data)
@@ -157,21 +136,11 @@ defmodule HobotTest do
     assert_receive {:broadcast, ^topic, ^data}
   end
 
-  test "A subscriber receives message with low latency even if other subscribers were slow" do
+  test "A subscriber receives message with low latency even if other subscribers were slow", %{callback_sup: callback_sup, slow_sup: slow_sup} do
     topic = "foo"
 
-    import Supervisor.Spec
-    children = [
-      worker(SlowSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _slowscriber} = Supervisor.start_child(sup_pid, [topic])
-
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, _slowscriber} = Supervisor.start_child(slow_sup, [topic])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     for _times <- 1..1000 do
       data = "Hello world!"
@@ -180,7 +149,7 @@ defmodule HobotTest do
     end
   end
 
-  test "The broker eliminates crashed subscriber from own registry" do
+  test "The broker eliminates crashed subscriber from own registry", %{callback_sup: callback_sup}  do
     # See also
     # https://hexdocs.pm/elixir/1.4.2/Registry.html#module-registrations
 
@@ -188,6 +157,7 @@ defmodule HobotTest do
 
     import Supervisor.Spec
     children = [
+      # Note: `restart: :temporary`
       worker(CrashSubscriber, [], restart: :temporary)
     ]
     {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
@@ -195,11 +165,7 @@ defmodule HobotTest do
       {:ok, _crachsubscriber} = Supervisor.start_child(sup_pid, [{topic, self()}])
     end
 
-    children = [
-      worker(CallbackSubscriber, [], [])
-    ]
-    {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    {:ok, _subscriber} = Supervisor.start_child(sup_pid, [{topic, [], self()}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     100 = length(Registry.lookup(Hobot, topic))
 
