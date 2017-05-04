@@ -6,7 +6,6 @@ elixir:
   - 1.4.2
 env:
   global:
-    - HEX_USERNAME=niku
     # Follow other language's environment
     # e.g.) `RACK_ENV=test` has been setted as Default Environment Variables
     # https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
@@ -15,6 +14,12 @@ cache:
   directories:
     - _build
     - deps
+before_install:
+  # https://docs.travis-ci.com/user/encrypting-files/
+  # Decrypt the file about configuration(auth and so on) of hex.pm
+  - mkdir -p ~/.hex/
+  - openssl aes-256-cbc -K $encrypted_36030c2fae51_key -iv $encrypted_36030c2fae51_iv -in hex.config.enc -out ~/.hex/hex.config -d
+
 script:
   - mix credo --strict
   # https://github.com/jeremyjh/dialyxir#command-line-options
@@ -29,8 +34,6 @@ deploy:
    # `>-` indicates the line folding.
    script: >-
      mix deps.get &&
-     mix hex.config username "$HEX_USERNAME" &&
-     (mix hex.config encrypted_key "$HEX_ENCRYPTED_KEY" > /dev/null 2>&1) &&
      (echo "$HEX_PASSPHRASE"\\nY | mix hex.publish) &&
      mix clean &&
      mix deps.clean --all
