@@ -34,7 +34,7 @@ defmodule Hobot.Mixfile do
   defp deps do
     [{:ex_doc, ">= 0.0.0", only: [:dev, :test]},
      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-     {:credo, "~> 0.7", only: [:dev, :test]}]
+     {:credo, "~> 0.8", only: [:dev, :test]}]
   end
 
   defp description do
