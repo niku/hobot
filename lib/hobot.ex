@@ -11,8 +11,8 @@ defmodule Hobot do
     Registry.unregister(__MODULE__, topic)
   end
 
-  def publish(topic, data) do
-    message = {:broadcast, topic, data}
+  def publish(topic, from, ref, data) do
+    message = {:broadcast, from, ref, data}
     Registry.dispatch(__MODULE__, topic, fn entries ->
       for {pid, _} <- entries do
         GenServer.cast(pid, message)

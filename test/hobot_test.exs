@@ -16,14 +16,14 @@ defmodule HobotTest do
       {:ok, args}
     end
 
-    def handle_cast({:broadcast, topic, data}, {_subscribed_topic, filters, callback_pid} = state) do
+    def handle_cast({:broadcast, pid, ref, data}, {_subscribed_topic, filters, callback_pid} = state) do
       filtered_message = Enum.reduce(filters, data, fn
         (f, acc) when is_function(f) ->
           apply(f, [acc])
         ({module, function, default_args}, acc) when is_atom(module) and is_atom(function) and is_list(default_args) ->
           apply(module, function, default_args ++ [acc])
       end)
-      send(callback_pid, {:broadcast, topic, filtered_message})
+      send(callback_pid, {:broadcast, pid, ref, filtered_message})
       {:noreply, state}
     end
 
@@ -90,17 +90,21 @@ defmodule HobotTest do
     topic = "foo"
     {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [fn m -> "***" <> m  end], self()}])
 
+    pid = self()
+    ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, data)
-    assert_receive {:broadcast, ^topic, "***Hello world!"}
+    :ok = Hobot.publish(topic, pid, ref, data)
+    assert_receive {:broadcast, ^pid, ^ref, "***Hello world!"}
   end
 
   test "A subscriber receives no message which was published to a topic which didn't subscribe", %{callback_sup: callback_sup} do
     topic = "foo"
     {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
+    pid = self()
+    ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish("bar", data)
+    :ok = Hobot.publish("bar", pid, ref, data)
     refute_receive _anything
   end
 
@@ -109,8 +113,10 @@ defmodule HobotTest do
     {:ok, subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
     GenServer.call(subscriber, {:unsubscribe, topic})
 
+    pid = self()
+    ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish("bar", data)
+    :ok = Hobot.publish("bar", pid, ref, data)
     refute_receive _anything
   end
 
@@ -120,9 +126,11 @@ defmodule HobotTest do
     {:ok, crashsubscriber} = Supervisor.start_child(crash_sup, [{topic, self()}])
     {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
+    pid = self()
+    ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, data)
-    assert_receive {:broadcast, ^topic, ^data}
+    :ok = Hobot.publish(topic, pid, ref, data)
+    assert_receive {:broadcast, ^pid, ^ref, ^data}
 
     # Waiting for the process crashed
     receive do
@@ -132,8 +140,8 @@ defmodule HobotTest do
     end
 
     data = "Hello world again!"
-    :ok = Hobot.publish(topic, data)
-    assert_receive {:broadcast, ^topic, ^data}
+    :ok = Hobot.publish(topic, pid, ref, data)
+    assert_receive {:broadcast, ^pid, ^ref, ^data}
   end
 
   test "A subscriber receives message with low latency even if other subscribers were slow", %{callback_sup: callback_sup, slow_sup: slow_sup} do
@@ -143,9 +151,11 @@ defmodule HobotTest do
     {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
     for _times <- 1..1000 do
+      pid = self()
+      ref = make_ref()
       data = "Hello world!"
-      :ok = Hobot.publish(topic, data)
-      assert_receive {:broadcast, ^topic, ^data}, 1 # timeout 1ms
+      :ok = Hobot.publish(topic, pid, ref, data)
+      assert_receive {:broadcast, ^pid, ^ref, ^data}, 1 # timeout 1ms
     end
   end
 
@@ -169,8 +179,10 @@ defmodule HobotTest do
 
     100 = length(Registry.lookup(Hobot, topic))
 
+    pid = self()
+    ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, data)
+    :ok = Hobot.publish(topic, pid, ref, data)
 
     Process.sleep(10)
 
