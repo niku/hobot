@@ -45,7 +45,7 @@ defmodule Hobot.Adapters.Shell do
   def handle_info(data, {topic, _options} = state) do
     from = self()
     ref = make_ref()
-    Hobot.publish(topic, from, ref, data)
+    Hobot.PubSub.publish(topic, from, ref, data)
     {:noreply, state}
   end
 end

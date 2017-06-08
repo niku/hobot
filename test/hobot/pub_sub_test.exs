@@ -1,6 +1,6 @@
-defmodule HobotTest do
+defmodule Hobot.PubSubTest do
   use ExUnit.Case
-  doctest Hobot
+  doctest Hobot.PubSub
 
   @moduletag :capture_log
 
@@ -12,7 +12,7 @@ defmodule HobotTest do
     end
 
     def init({topic, _filters, _callback_pid} = args) do
-      Hobot.subscribe(topic)
+      Hobot.PubSub.subscribe(topic)
       {:ok, args}
     end
 
@@ -28,7 +28,7 @@ defmodule HobotTest do
     end
 
     def handle_call({:unsubscribe, topic}, _from, callback_pid) do
-      Hobot.unsubscribe(topic)
+      Hobot.PubSub.unsubscribe(topic)
       {:reply, :ok, callback_pid}
     end
   end
@@ -41,7 +41,7 @@ defmodule HobotTest do
     end
 
     def init({topic, callback_pid}) do
-      Hobot.subscribe(topic)
+      Hobot.PubSub.subscribe(topic)
       {:ok, callback_pid}
     end
 
@@ -64,7 +64,7 @@ defmodule HobotTest do
     end
 
     def init(topic) do
-      Hobot.subscribe(topic)
+      Hobot.PubSub.subscribe(topic)
       {:ok, []}
     end
 
@@ -93,7 +93,7 @@ defmodule HobotTest do
     pid = self()
     ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, pid, ref, data)
+    :ok = Hobot.PubSub.publish(topic, pid, ref, data)
     assert_receive {:broadcast, ^pid, ^ref, "***Hello world!"}
   end
 
@@ -104,7 +104,7 @@ defmodule HobotTest do
     pid = self()
     ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish("bar", pid, ref, data)
+    :ok = Hobot.PubSub.publish("bar", pid, ref, data)
     refute_receive _anything
   end
 
@@ -116,7 +116,7 @@ defmodule HobotTest do
     pid = self()
     ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish("bar", pid, ref, data)
+    :ok = Hobot.PubSub.publish("bar", pid, ref, data)
     refute_receive _anything
   end
 
@@ -129,7 +129,7 @@ defmodule HobotTest do
     pid = self()
     ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, pid, ref, data)
+    :ok = Hobot.PubSub.publish(topic, pid, ref, data)
     assert_receive {:broadcast, ^pid, ^ref, ^data}
 
     # Waiting for the process crashed
@@ -140,7 +140,7 @@ defmodule HobotTest do
     end
 
     data = "Hello world again!"
-    :ok = Hobot.publish(topic, pid, ref, data)
+    :ok = Hobot.PubSub.publish(topic, pid, ref, data)
     assert_receive {:broadcast, ^pid, ^ref, ^data}
   end
 
@@ -154,7 +154,7 @@ defmodule HobotTest do
       pid = self()
       ref = make_ref()
       data = "Hello world!"
-      :ok = Hobot.publish(topic, pid, ref, data)
+      :ok = Hobot.PubSub.publish(topic, pid, ref, data)
       assert_receive {:broadcast, ^pid, ^ref, ^data}, 1 # timeout 1ms
     end
   end
@@ -177,15 +177,15 @@ defmodule HobotTest do
 
     {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{topic, [], self()}])
 
-    100 = length(Registry.lookup(Hobot, topic))
+    100 = length(Registry.lookup(Hobot.PubSub, topic))
 
     pid = self()
     ref = make_ref()
     data = "Hello world!"
-    :ok = Hobot.publish(topic, pid, ref, data)
+    :ok = Hobot.PubSub.publish(topic, pid, ref, data)
 
     Process.sleep(10)
 
-    assert length(Registry.lookup(Hobot, topic)) < 100
+    assert length(Registry.lookup(Hobot.PubSub, topic)) < 100
   end
 end

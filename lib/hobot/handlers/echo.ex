@@ -10,7 +10,7 @@ defmodule Hobot.Handlers.Echo do
   end
 
   def init({topic, _handler_options} = args) do
-    Hobot.subscribe(topic)
+    Hobot.PubSub.subscribe(topic)
     {:ok, args}
   end
 
@@ -20,7 +20,7 @@ defmodule Hobot.Handlers.Echo do
   end
 
   def terminate(reason, {topic, _handler_options}) do
-    Hobot.unsubscribe(topic)
+    Hobot.PubSub.unsubscribe(topic)
     reason
   end
 end
