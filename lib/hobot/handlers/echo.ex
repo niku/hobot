@@ -5,12 +5,12 @@ defmodule Hobot.Handlers.Echo do
 
   use GenServer
 
-  def start_link({topic, handler_options}, genserver_options \\ []) do
-    GenServer.start_link(__MODULE__, {topic, handler_options}, genserver_options)
+  def start_link({topic, context}, genserver_options \\ []) do
+    GenServer.start_link(__MODULE__, {topic, context}, genserver_options)
   end
 
-  def init({topic, _handler_options} = args) do
-    Hobot.PubSub.subscribe(topic)
+  def init({topic, context} = args) do
+    context.subscribe.(topic)
     {:ok, args}
   end
 
@@ -19,8 +19,8 @@ defmodule Hobot.Handlers.Echo do
     {:noreply, state}
   end
 
-  def terminate(reason, {topic, _handler_options}) do
-    Hobot.PubSub.unsubscribe(topic)
+  def terminate(reason, {topic, context}) do
+    context.unsubscribe.(topic)
     reason
   end
 end

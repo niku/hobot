@@ -33,8 +33,8 @@ defmodule Hobot.Adapters.Shell do
     end
   end
 
-  def start_link({topic, adapter_options}, genserver_options \\ []) do
-    GenServer.start_link(__MODULE__, {topic, adapter_options}, genserver_options)
+  def start_link({topic, context}, genserver_options \\ []) do
+    GenServer.start_link(__MODULE__, {topic, context}, genserver_options)
   end
 
   def handle_cast({_ref, data}, state) do
@@ -42,10 +42,10 @@ defmodule Hobot.Adapters.Shell do
     {:noreply, state}
   end
 
-  def handle_info(data, {topic, _options} = state) do
+  def handle_info(data, {topic, context} = state) do
     from = self()
     ref = make_ref()
-    Hobot.PubSub.publish(topic, from, ref, data)
+    context.publish.(topic, from, ref, data)
     {:noreply, state}
   end
 end
