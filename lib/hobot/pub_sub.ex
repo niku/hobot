@@ -1,15 +1,21 @@
 defmodule Hobot.PubSub do
-  def subscribe(topic) do
-    Registry.register(__MODULE__, topic, [])
+  @name_suffix PubSub
+
+  def build_name(bot_name) do
+    Module.concat(bot_name, @name_suffix)
   end
 
-  def unsubscribe(topic) do
-    Registry.unregister(__MODULE__, topic)
+  def subscribe(registry, topic) do
+    Registry.register(registry, topic, [])
   end
 
-  def publish(topic, from, ref, data) do
-    message = {:broadcast, from, ref, data}
-    Registry.dispatch(__MODULE__, topic, fn entries ->
+  def unsubscribe(registry, topic) do
+    Registry.unregister(registry, topic)
+  end
+
+  def publish(registry, topic, from, ref, data) do
+    message = {:broadcast, topic, from, ref, data}
+    Registry.dispatch(registry, topic, fn entries ->
       for {pid, _} <- entries do
         GenServer.cast(pid, message)
       end

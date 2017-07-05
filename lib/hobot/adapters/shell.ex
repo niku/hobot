@@ -29,12 +29,13 @@ defmodule Hobot.Adapters.Shell do
         nil
       _ ->
         send(pid, line)
-        gets(pid)
+        gets(pid, prompt)
     end
   end
 
-  def start_link({topic, context}, genserver_options \\ []) do
-    GenServer.start_link(__MODULE__, {topic, context}, genserver_options)
+  def init(context) do
+    {:ok, shell_pid} = Task.start_link(__MODULE__, :gets, [self()])
+    {:ok, {context, shell_pid}}
   end
 
   def handle_cast({_ref, data}, state) do
@@ -42,10 +43,10 @@ defmodule Hobot.Adapters.Shell do
     {:noreply, state}
   end
 
-  def handle_info(data, {topic, context} = state) do
+  def handle_info(data, {context, _shell_pid} = state) do
     from = self()
     ref = make_ref()
-    context.publish.(topic, from, ref, data)
+    context.publish.("on_message", from, ref, data)
     {:noreply, state}
   end
 end

@@ -12,12 +12,12 @@ defmodule Hobot.Application do
     children = [
       # Starts a worker by calling: Hobot.Worker.start_link(arg1, arg2, arg3)
       # worker(Hobot.Worker, [arg1, arg2, arg3]),
-      supervisor(Registry, [:duplicate, Hobot.PubSub, [partitions: System.schedulers_online()]])
+      supervisor(Hobot.Bot.Supervisor, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Hobot.Supervisor]
+    opts = [strategy: :simple_one_for_one, name: Hobot.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end
