@@ -14,15 +14,9 @@ defmodule Hobot.Bot do
       bot: bot(name),
       pub_sub: pub_sub(name),
       adapter: adapter(name),
-      subscribe: fn(topic) ->
-        Hobot.PubSub.subscribe(pub_sub(name), topic)
-      end,
-      publish: fn (topic, from, ref, data) ->
-        Hobot.PubSub.publish(pub_sub(name), topic, from, ref, data)
-      end,
-      unsubscribe: fn(topic) ->
-        Hobot.PubSub.unsubscribe(pub_sub(name), topic)
-      end
+      subscribe: &(Hobot.PubSub.subscribe(pub_sub(name), &1)),
+      publish: &(Hobot.PubSub.publish(pub_sub(name), &1, &2, &3, &4)),
+      unsubscribe: &(Hobot.PubSub.unsubscribe(pub_sub(name), &1))
     }
   end
 end
