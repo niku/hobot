@@ -5,7 +5,7 @@ defmodule Hobot.Handlers.Echo do
 
   use GenServer
 
-  def init({topics, context} = args) do
+  def init({context, topics} = args) do
     for topic <- topics, do: context.subscribe.(topic)
     {:ok, args}
   end
