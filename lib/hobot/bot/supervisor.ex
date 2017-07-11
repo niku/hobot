@@ -16,7 +16,7 @@ defmodule Hobot.Bot.Supervisor do
       worker(GenServer, [handler.module, build_args(handler, context), []], [id: "Handler#{index}"])
     end
 
-    # NOTE: It's worth to add a process name. I couldn't it right now.
+    # NOTE: I think it's worth to add a process name. But I'm not sure how to make it.
     opts = [strategy: :one_for_one]
     supervise(children, opts)
   end
