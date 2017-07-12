@@ -22,7 +22,7 @@ defmodule Hobot.Bot.Supervisor do
   def build_args(conf, context) do
     case Map.get(conf, :args, []) do
       [] -> context
-      args -> {context, args}
+      args -> List.to_tuple([context | args])
     end
   end
 
