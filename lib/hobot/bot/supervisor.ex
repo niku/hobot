@@ -13,7 +13,7 @@ defmodule Hobot.Bot.Supervisor do
       # If you want give a GenServer options from outside, feel free to make a pull request.
       worker(GenServer, [adapter.module, build_args(adapter, context), [name: context.adapter]], [id: context.adapter]),
     ] ++ for {handler, index} <- Enum.with_index(handlers) do
-      worker(GenServer, [handler.module, build_args(handler, context), []], [id: "Handler#{index}"])
+      worker(GenServer, [handler.module, build_args(handler, context), [name: context.handler.(index)]], [id: context.handler.(index)])
     end
 
     # NOTE: I think it's worth to add a process name. But I'm not sure how to make it.
