@@ -10,8 +10,8 @@ defmodule Hobot.Handlers.Echo do
     {:ok, args}
   end
 
-  def handle_cast({:broadcast, _topic, from, ref, data}, state) do
-    GenServer.cast(from, {ref, data})
+  def handle_cast({:broadcast, topic, from, ref, data}, state) do
+    GenServer.cast(from, {topic, from, ref, data})
     {:noreply, state}
   end
 

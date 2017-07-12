@@ -21,7 +21,7 @@ defmodule Hobot.Adapters.Shell do
     end
   end
 
-  def handle_cast({_ref, data}, state) do
+  def handle_cast({_topic, _from, _ref, data}, state) do
     IO.puts(inspect(data))
     {:noreply, state}
   end
