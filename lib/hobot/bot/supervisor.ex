@@ -9,11 +9,9 @@ defmodule Hobot.Bot.Supervisor do
     context = Hobot.Bot.make_context(name)
     children = [
       supervisor(Registry, [:duplicate, context.pub_sub]),
-      # Right now, I don't implement to take a GenServer options because of I don't need it.
-      # If you want give a GenServer options from outside, feel free to make a pull request.
-      worker(GenServer, [adapter.module, build_args(adapter, context), [name: context.adapter]], [id: context.adapter]),
+      worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
     ] ++ for {handler, index} <- Enum.with_index(handlers) do
-      worker(GenServer, [handler.module, build_args(handler, context), [name: context.handler.(index)]], [id: context.handler.(index)])
+      worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, context.handler.(index))], [id: context.handler.(index)])
     end
 
     # NOTE: I think it's worth to add a process name. But I'm not sure how to make it.
@@ -26,5 +24,10 @@ defmodule Hobot.Bot.Supervisor do
       [] -> context
       args -> {context, args}
     end
+  end
+
+  def build_options(conf, name) do
+    options = Map.get(conf, :options, [])
+    Keyword.merge(options, [name: name])
   end
 end
