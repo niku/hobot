@@ -9,6 +9,7 @@ defmodule Hobot.Bot.Supervisor do
     context = Hobot.Bot.make_context(name)
     children = [
       supervisor(Registry, [:duplicate, context.pub_sub]),
+      supervisor(Agent, [fn -> context end, [name: context.context]]),
       worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
     ] ++ for {handler, index} <- Enum.with_index(handlers) do
       worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, context.handler.(index))], [id: context.handler.(index)])
