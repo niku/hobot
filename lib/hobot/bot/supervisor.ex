@@ -6,12 +6,13 @@ defmodule Hobot.Bot.Supervisor do
   end
 
   def init(%{name: name, adapter: adapter, handlers: handlers}) do
-    context = Hobot.Bot.make_context(name)
+    handlers_with_index = Enum.with_index(handlers)
+    context = Hobot.Bot.make_context(name, adapter, handlers_with_index)
     children = [
       supervisor(Registry, [:duplicate, context.pub_sub]),
       supervisor(Agent, [fn -> context end, [name: context.context]]),
       worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
-    ] ++ for {handler, index} <- Enum.with_index(handlers) do
+    ] ++ for {handler, index} <- handlers_with_index do
       worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, context.handler.(index))], [id: context.handler.(index)])
     end
 
