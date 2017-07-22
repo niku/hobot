@@ -1,11 +1,13 @@
 defmodule Hobot.Middleware do
   @default %{
     before_publish: [],
-    before_receive: []
+    before_receive: [],
+    before_reply: []
   }
 
   def build(conf) do
-    Map.get(conf, :middleware, @default)
+    @default
+    |> Map.merge(Map.get(conf, :middleware, %{}))
     |> Map.take(Map.keys(@default))
   end
 
