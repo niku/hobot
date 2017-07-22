@@ -11,6 +11,7 @@ defmodule Hobot.Bot.Supervisor do
     children = [
       supervisor(Registry, [:duplicate, context.pub_sub]),
       supervisor(Agent, [fn -> context end, [name: context.context]]),
+      supervisor(Task.Supervisor, [[name: context.task_supervisor]]),
       worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
     ] ++ for {handler, index} <- handlers_with_index do
       worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, apply(context.handler, [index]))], [id: apply(context.handler, [index])])

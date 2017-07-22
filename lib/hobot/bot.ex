@@ -7,6 +7,7 @@ defmodule Hobot.Bot do
 
   def bot(atom), do: build_name(atom)
   def context(atom), do: Module.concat(bot(atom), Context)
+  def task_supervisor(atom), do: Module.concat(bot(atom), TaskSupervisor)
   def pub_sub(atom), do: Hobot.PubSub.build_name(bot(atom))
   def adapter(atom), do: Hobot.Adapter.build_name(bot(atom))
   def handler(atom, index), do: Hobot.Handler.build_name(bot(atom), index)
@@ -22,17 +23,17 @@ defmodule Hobot.Bot do
     Hobot.PubSub.subscribe(pub_sub, topic, before_receive)
   end
 
-  def publish(pub_sub, topic, ref, data, middleware) do
+  def publish(pub_sub, topic, ref, data, task_supervisor, middleware) do
     {:registered_name, registered_name} = Process.info(self(), :registered_name)
     before_publish = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_publish)])
-    Hobot.PubSub.publish(pub_sub, topic, ref, data, before_publish)
+    Hobot.PubSub.publish(pub_sub, topic, ref, data, task_supervisor, before_publish)
   end
 
-  def reply(adapter_name, ref, data, middleware) do
+  def reply(adapter_name, ref, data, task_supervisor, middleware) do
     {:registered_name, registered_name} = Process.info(self(), :registered_name)
     before_reply = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_reply)])
     reply = {:reply, ref, data}
-    Task.start(fn ->
+    Task.Supervisor.start_child(task_supervisor, fn ->
       case Hobot.Middleware.apply_middleware(before_reply, reply) do
         {:ok, value} ->
           GenServer.cast(adapter_name, value)
@@ -48,14 +49,15 @@ defmodule Hobot.Bot do
     %{
       bot: bot(name),
       context: context(name),
+      task_supervisor: task_supervisor(name),
       pub_sub: pub_sub(name),
       adapter: adapter(name),
       handler: &(handler(name, &1)),
       middleware: middleware,
       subscribe: &(subscribe(pub_sub(name), &1, middleware)),
-      publish: &(publish(pub_sub(name), &1, &2, &3, middleware)),
+      publish: &(publish(pub_sub(name), &1, &2, &3, task_supervisor(name), middleware)),
       unsubscribe: &(Hobot.PubSub.unsubscribe(pub_sub(name), &1)),
-      reply: &(reply(adapter(name), &1, &2, middleware))
+      reply: &(reply(adapter(name), &1, &2, task_supervisor(name), middleware))
     }
   end
 
