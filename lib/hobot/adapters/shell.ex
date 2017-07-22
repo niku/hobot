@@ -27,7 +27,7 @@ defmodule Hobot.Adapters.Shell do
   end
 
   def handle_info(data, context) do
-    context.publish.("on_message", make_ref(), data)
+    apply(context.publish, ["on_message", make_ref(), data])
     {:noreply, context}
   end
 end

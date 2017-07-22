@@ -13,7 +13,7 @@ defmodule Hobot.Bot.Supervisor do
       supervisor(Agent, [fn -> context end, [name: context.context]]),
       worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
     ] ++ for {handler, index} <- handlers_with_index do
-      worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, context.handler.(index))], [id: context.handler.(index)])
+      worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, apply(context.handler, [index]))], [id: apply(context.handler, [index])])
     end
 
     # NOTE: I think it's worth to add a process name. But I'm not sure how to make it.
