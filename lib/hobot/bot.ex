@@ -6,8 +6,8 @@ defmodule Hobot.Bot do
   end
 
   def bot(atom), do: build_name(atom)
-  def context(atom), do: Module.concat(bot(atom), Context)
-  def task_supervisor(atom), do: Module.concat(bot(atom), TaskSupervisor)
+  def context(atom), do: Module.concat(bot(atom), "Context")
+  def task_supervisor(atom), do: Module.concat(bot(atom), "TaskSupervisor")
   def pub_sub(atom), do: Hobot.PubSub.build_name(bot(atom))
   def adapter(atom), do: Hobot.Adapter.build_name(bot(atom))
   def handler(atom, index), do: Hobot.Handler.build_name(bot(atom), index)

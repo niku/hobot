@@ -1,5 +1,5 @@
 defmodule Hobot.PubSub do
-  @name_suffix PubSub
+  @name_suffix "PubSub"
 
   def build_name(bot_name) do
     Module.concat(bot_name, @name_suffix)
