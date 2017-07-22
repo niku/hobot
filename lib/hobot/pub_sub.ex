@@ -13,8 +13,8 @@ defmodule Hobot.PubSub do
     Registry.unregister(registry, topic)
   end
 
-  def publish(registry, topic, from, ref, data, before_publish) do
-    message = {:broadcast, topic, from, ref, data}
+  def publish(registry, topic, ref, data, before_publish) do
+    message = {:broadcast, topic, ref, data}
     Task.start(fn ->
       case Hobot.Middleware.apply_middleware(before_publish, message) do
         {:ok, value} ->

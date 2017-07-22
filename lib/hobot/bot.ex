@@ -22,10 +22,25 @@ defmodule Hobot.Bot do
     Hobot.PubSub.subscribe(pub_sub, topic, before_receive)
   end
 
-  def publish(pub_sub, topic, from, ref, data, middleware) do
+  def publish(pub_sub, topic, ref, data, middleware) do
     {:registered_name, registered_name} = Process.info(self(), :registered_name)
     before_publish = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_publish)])
-    Hobot.PubSub.publish(pub_sub, topic, from, ref, data, before_publish)
+    Hobot.PubSub.publish(pub_sub, topic, ref, data, before_publish)
+  end
+
+  def reply(adapter_name, ref, data, middleware) do
+    {:registered_name, registered_name} = Process.info(self(), :registered_name)
+    before_reply = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_reply)])
+    reply = {:reply, ref, data}
+    Task.start(fn ->
+      case Hobot.Middleware.apply_middleware(before_reply, reply) do
+        {:ok, value} ->
+          GenServer.cast(adapter_name, value)
+        {:halt, value} ->
+          # TODO: Better Logging
+          IO.inspect {:halt, value}
+      end
+    end)
   end
 
   def make_context(name, adapter, handlers_with_index) do
@@ -38,8 +53,9 @@ defmodule Hobot.Bot do
       handler: &(handler(name, &1)),
       middleware: middleware,
       subscribe: &(subscribe(pub_sub(name), &1, middleware)),
-      publish: &(publish(pub_sub(name), &1, &2, &3, &4, middleware)),
-      unsubscribe: &(Hobot.PubSub.unsubscribe(pub_sub(name), &1))
+      publish: &(publish(pub_sub(name), &1, &2, &3, middleware)),
+      unsubscribe: &(Hobot.PubSub.unsubscribe(pub_sub(name), &1)),
+      reply: &(reply(adapter(name), &1, &2, middleware))
     }
   end
 

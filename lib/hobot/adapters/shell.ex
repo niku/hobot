@@ -21,15 +21,13 @@ defmodule Hobot.Adapters.Shell do
     end
   end
 
-  def handle_cast({_topic, _from, _ref, data}, state) do
+  def handle_cast({:reply, _ref, data}, state) do
     IO.puts(inspect(data))
     {:noreply, state}
   end
 
   def handle_info(data, context) do
-    from = self()
-    ref = make_ref()
-    context.publish.("on_message", from, ref, data)
+    context.publish.("on_message", make_ref(), data)
     {:noreply, context}
   end
 end
