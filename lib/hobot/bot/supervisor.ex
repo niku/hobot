@@ -1,25 +1,31 @@
 defmodule Hobot.Bot.Supervisor do
   use Supervisor
 
-  def start_link(arg, options \\ []) do
-    Supervisor.start_link(__MODULE__, arg, options)
+  def start_link(env, arg, options \\ []) do
+    Supervisor.start_link(__MODULE__, Map.merge(env, arg), options)
   end
 
-  def init(%{name: name, adapter: adapter, handlers: handlers}) do
+  def init(%{name: name, adapter: adapter, handlers: handlers, name_registry: name_registry, pub_sub: pub_sub, task_supervisor: task_supervisor}) do
     handlers_with_index = Enum.with_index(handlers)
-    context = Hobot.Bot.make_context(name, adapter, handlers_with_index)
+    context = Hobot.Bot.make_context(name, adapter, handlers_with_index, name_registry, pub_sub, task_supervisor)
     children = [
-      supervisor(Registry, [:duplicate, context.pub_sub]),
-      supervisor(Agent, [fn -> context end, [name: context.context]]),
-      supervisor(Task.Supervisor, [[name: context.task_supervisor]]),
-      worker(GenServer, [adapter.module, build_args(adapter, context), build_options(adapter, context.adapter)], [id: context.adapter]),
+      %{
+        id: context.context,
+        start: {Agent, :start_link, [fn -> context end, [name: build_via_name(context.name_registry, context.context)]]}
+      },
+      %{
+        id: context.adapter,
+        start: {GenServer, :start_link, [adapter.module, build_args(adapter, context), build_options(adapter, context, context.adapter)]}
+      }
     ] ++ for {handler, index} <- handlers_with_index do
-      worker(GenServer, [handler.module, build_args(handler, context), build_options(adapter, apply(context.handler, [index]))], [id: apply(context.handler, [index])])
+      %{
+        id: apply(context.handler, [index]),
+        start: {GenServer, :start_link, [handler.module, build_args(handler, context), build_options(handler, context, apply(context.handler, [index]))]}
+      }
     end
 
-    # NOTE: I think it's worth to add a process name. But I'm not sure how to make it.
     opts = [strategy: :one_for_one]
-    supervise(children, opts)
+    Supervisor.init(children, opts)
   end
 
   def build_args(conf, context) do
@@ -29,8 +35,10 @@ defmodule Hobot.Bot.Supervisor do
     end
   end
 
-  def build_options(conf, name) do
+  def build_options(conf, context, name) do
     options = Map.get(conf, :options, [])
-    Keyword.merge(options, [name: name])
+    Keyword.merge(options, name: build_via_name(context.name_registry, name))
   end
+
+  def build_via_name(name_registry, name), do: {:via, Registry, {name_registry, name}}
 end

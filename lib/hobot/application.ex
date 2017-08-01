@@ -1,23 +1,31 @@
 defmodule Hobot.Application do
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
 
-  def start(_type, _args) do
-    import Supervisor.Spec, warn: false
+  @name_registry Hobot.NameRegistry
+  @pub_sub Hobot.PubSub
+  @task_supervisor Hobot.TaskSupervisor
 
-    # Define workers and child supervisors to be supervised
+  def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Hobot.Worker.start_link(arg1, arg2, arg3)
-      # worker(Hobot.Worker, [arg1, arg2, arg3]),
-      supervisor(Hobot.Bot.Supervisor, [])
+      %{
+        start: {Registry, :start_link, [[keys: :unique, name: @name_registry, partitions: System.schedulers_online()]]},
+        id: @name_registry,
+      },
+      %{
+        start: {Registry, :start_link, [[keys: :duplicate, name: @pub_sub, partitions: System.schedulers_online()]]},
+        id: @pub_sub,
+      },
+      {Task.Supervisor, name:  @task_supervisor},
+      {Hobot.Supervisor, name_registry: @name_registry, task_supervisor: @task_supervisor}
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :simple_one_for_one, name: Hobot.Supervisor]
+    opts = [strategy: :one_for_one, name: Hobot.ApplicationSupervisor]
     Supervisor.start_link(children, opts)
   end
+
+  def name_registry, do: @name_registry
+  def pub_sub, do: @pub_sub
+  def task_supervisor, do: @task_supervisor
 end

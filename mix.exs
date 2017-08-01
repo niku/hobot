@@ -4,7 +4,7 @@ defmodule Hobot.Mixfile do
   def project do
     [app: :hobot,
      version: "0.2.0",
-     elixir: "~> 1.4",
+     elixir: "~> 1.5",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      description: description(),

@@ -1,9 +1,9 @@
 language: elixir
 sudo: false
 otp_release:
-  - 19.3
+  - 20.0
 elixir:
-  - 1.4.2
+  - 1.5.0
 env:
   global:
     # Follow other language's environment
