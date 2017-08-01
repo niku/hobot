@@ -17,7 +17,7 @@ defmodule Hobot.Application do
         start: {Registry, :start_link, [[keys: :duplicate, name: @pub_sub, partitions: System.schedulers_online()]]},
         id: @pub_sub,
       },
-      {Task.Supervisor, name:  @task_supervisor},
+      {Task.Supervisor, name: @task_supervisor},
       {Hobot.Supervisor, name_registry: @name_registry, task_supervisor: @task_supervisor}
     ]
 
