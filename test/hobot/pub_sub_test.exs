@@ -11,8 +11,8 @@ defmodule Hobot.PubSubTest do
       GenServer.start_link(__MODULE__, args, opts)
     end
 
-    def init({registry, name, topic, before_receive, _callback_pid} = args) do
-      Hobot.PubSub.subscribe(registry, name, topic, before_receive)
+    def init({application_process, name, topic, before_receive, _callback_pid} = args) do
+      Hobot.PubSub.subscribe(application_process, name, topic, before_receive)
       {:ok, args}
     end
 
@@ -29,8 +29,8 @@ defmodule Hobot.PubSubTest do
       GenServer.start_link(__MODULE__, args, opts)
     end
 
-    def init({registry, name, topic, before_receive, callback_pid}) do
-      Hobot.PubSub.subscribe(registry, name, topic, before_receive)
+    def init({application_process, name, topic, before_receive, callback_pid}) do
+      Hobot.PubSub.subscribe(application_process, name, topic, before_receive)
       {:ok, callback_pid}
     end
 
@@ -52,8 +52,8 @@ defmodule Hobot.PubSubTest do
       GenServer.start_link(__MODULE__, args, opts)
     end
 
-    def init({registry, name, topic, before_receive, _callback_pid}) do
-      Hobot.PubSub.subscribe(registry, name, topic, before_receive)
+    def init({application_process, name, topic, before_receive, _callback_pid}) do
+      Hobot.PubSub.subscribe(application_process, name, topic, before_receive)
       {:ok, []}
     end
 
@@ -64,13 +64,15 @@ defmodule Hobot.PubSubTest do
   end
 
   setup context do
-    # It needs an atom which points a pid for the first argument of Registry functions.
-    pub_sub = Module.concat([__MODULE__, "PubSubRegistry", context.test])
-    {:ok, _} = Registry.start_link(keys: :duplicate, name: pub_sub)
+    application_process = %Hobot.ApplicationProcess {
+      name_registry: Module.concat([__MODULE__, "NameRegistry", context.test]),
+      pub_sub: Module.concat([__MODULE__, "PubSubRegistry", context.test]),
+      task_supervisor: Module.concat([__MODULE__, "TaskSupervisor", context.test])
+    }
 
-    # It needs an atom which points a pid for the first argument of Task.Supervisor.start_child/2.
-    task_supervisor = Module.concat([__MODULE__, "TaskSupervisor", context.test])
-    {:ok, _} = Supervisor.start_link([{Task.Supervisor, name: task_supervisor}], strategy: :one_for_one)
+    {:ok, _} = Registry.start_link(keys: :unique, name: application_process.name_registry)
+    {:ok, _} = Registry.start_link(keys: :duplicate, name: application_process.pub_sub)
+    {:ok, _} = Supervisor.start_link([{Task.Supervisor, name: application_process.task_supervisor}], strategy: :one_for_one)
 
     {:ok, callback_sup} = Supervisor.start_link([
       Supervisor.child_spec(CallbackSubscriber, start: {CallbackSubscriber, :start_link, []})
@@ -82,51 +84,51 @@ defmodule Hobot.PubSubTest do
       Supervisor.child_spec(SlowSubscriber, start: {SlowSubscriber, :start_link, []})
     ], strategy: :simple_one_for_one)
 
-    {:ok, [pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup, crash_sup: crash_sup, slow_sup: slow_sup]}
+    {:ok, [application_process: application_process, callback_sup: callback_sup, crash_sup: crash_sup, slow_sup: slow_sup]}
   end
 
-  test "A subscriber receives a message which is published", %{pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup} do
+  test "A subscriber receives a message which is published", %{application_process: application_process, callback_sup: callback_sup} do
     name = "Foo"
     topic = "foo"
     before_receive = []
     callback_pid = self()
-    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{application_process, name, topic, before_receive, callback_pid}])
 
     ref = make_ref()
     data = "Hello world!"
     before_publish = []
-    {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+    {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
     assert_receive {:broadcast, ^topic, ^ref, ^data}
   end
 
-  test "A subscriber receives no message when it haven't subscribe the topic which is published", %{pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup} do
+  test "A subscriber receives no message when it haven't subscribe the topic which is published", %{application_process: application_process, callback_sup: callback_sup} do
     name = "Foo"
     topic = "foo"
     no_subscribed_topic = "bar"
     before_receive = []
     callback_pid = self()
-    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{application_process, name, topic, before_receive, callback_pid}])
 
     ref = make_ref()
     data = "Hello world!"
     before_publish = []
-    {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, no_subscribed_topic, ref, data, task_supervisor, before_publish)
+    {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, no_subscribed_topic, ref, data, before_publish)
     refute_receive _anything
   end
 
-  test "A subscriber receives a message even if other subscribers crashed", %{pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup, crash_sup: crash_sup} do
+  test "A subscriber receives a message even if other subscribers crashed", %{application_process: application_process, callback_sup: callback_sup, crash_sup: crash_sup} do
     name = "Foo"
     topic = "foo"
     before_receive = []
     callback_pid = self()
 
-    {:ok, crashsubscriber} = Supervisor.start_child(crash_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
-    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+    {:ok, crashsubscriber} = Supervisor.start_child(crash_sup, [{application_process, name, topic, before_receive, callback_pid}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{application_process, name, topic, before_receive, callback_pid}])
 
     ref = make_ref()
     data = "Hello world!"
     before_publish = []
-    {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+    {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
     assert_receive {:broadcast, ^topic, ^ref, ^data}
 
     receive do
@@ -137,11 +139,11 @@ defmodule Hobot.PubSubTest do
     end
 
     data = "Hello world again!"
-    {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+    {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
     assert_receive {:broadcast, ^topic, ^ref, ^data}
   end
 
-  test "A subscriber receives message with low latency even if other subscribers are slow", %{pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup, slow_sup: slow_sup} do
+  test "A subscriber receives message with low latency even if other subscribers are slow", %{application_process: application_process, callback_sup: callback_sup, slow_sup: slow_sup} do
     name = "Foo"
     topic = "foo"
     before_receive = []
@@ -149,20 +151,20 @@ defmodule Hobot.PubSubTest do
 
     # Make a hundred of slow subscribers
     for _times <- 0..99 do
-      {:ok, _slow_subscriber} = Supervisor.start_child(slow_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+      {:ok, _slow_subscriber} = Supervisor.start_child(slow_sup, [{application_process, name, topic, before_receive, callback_pid}])
     end
-    {:ok, _callback_subscriber} = Supervisor.start_child(callback_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+    {:ok, _callback_subscriber} = Supervisor.start_child(callback_sup, [{application_process, name, topic, before_receive, callback_pid}])
 
     for _times <- 0..2 do
       ref = make_ref()
       data = "Hello world!"
       before_publish = []
-      {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+      {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
       assert_receive {:broadcast, ^topic, ^ref, ^data}, 10 # timeout 10ms
     end
   end
 
-  test "The broker eliminates crashed subscriber from own registry", %{pub_sub: pub_sub, task_supervisor: task_supervisor, callback_sup: callback_sup}  do
+  test "The broker eliminates crashed subscriber from own registry", %{application_process: application_process, callback_sup: callback_sup}  do
     # See also
     # https://hexdocs.pm/elixir/1.5.1/Registry.html#module-registrations
 
@@ -176,23 +178,23 @@ defmodule Hobot.PubSubTest do
       Supervisor.child_spec(CrashSubscriber, start: {CrashSubscriber, :start_link, []})
     ], strategy: :simple_one_for_one)
     for _times <- 0..99 do
-      {:ok, _crachsubscriber} = Supervisor.start_child(sup_pid, [{pub_sub, name, topic, before_receive, callback_pid}])
+      {:ok, _crachsubscriber} = Supervisor.start_child(sup_pid, [{application_process, name, topic, before_receive, callback_pid}])
     end
-    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{pub_sub, name, topic, before_receive, callback_pid}])
+    {:ok, _subscriber} = Supervisor.start_child(callback_sup, [{application_process, name, topic, before_receive, callback_pid}])
 
     # 0..99 -> crachsubscriber 100 elements
     #        + subscriber 1 element
     #        = 101 elements
-    101 = length(Registry.lookup(pub_sub, {name, topic}))
+    101 = length(Registry.lookup(application_process.pub_sub, {name, topic}))
 
     ref = make_ref()
     data = "Hello world!"
     before_publish = []
-    {:ok, _pid}  = Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+    {:ok, _pid}  = Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
 
     # Waiting for terminating processes
     Process.sleep(10)
 
-    assert length(Registry.lookup(pub_sub, {name, topic})) == 1
+    assert length(Registry.lookup(application_process.pub_sub, {name, topic})) == 1
   end
 end

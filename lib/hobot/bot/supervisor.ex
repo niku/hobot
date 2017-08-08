@@ -1,13 +1,13 @@
 defmodule Hobot.Bot.Supervisor do
   use Supervisor
 
-  def start_link(env, arg, options \\ []) do
-    Supervisor.start_link(__MODULE__, Map.merge(env, arg), options)
+  def start_link(arg, options \\ []) do
+    Supervisor.start_link(__MODULE__, arg, options)
   end
 
-  def init(%{name: name, adapter: adapter, handlers: handlers, name_registry: name_registry, pub_sub: pub_sub, task_supervisor: task_supervisor}) do
+  def init(%{name: name, adapter: adapter, handlers: handlers, application_process: %Hobot.ApplicationProcess{} = application_process}) do
     handlers_with_index = Enum.with_index(handlers)
-    context = Hobot.Bot.make_context(name, adapter, handlers_with_index, name_registry, pub_sub, task_supervisor)
+    context = Hobot.Bot.make_context(name, adapter, handlers_with_index, application_process)
     children = [
       %{
         id: context.context,

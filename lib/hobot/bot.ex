@@ -8,26 +8,26 @@ defmodule Hobot.Bot do
     end
   end
 
-  def subscribe(pub_sub, name, topic, name_registry, middleware) do
-    [registered_name] = Registry.keys(name_registry, self())
+  def subscribe(%Hobot.ApplicationProcess{} = application_process, name, topic, middleware) do
+    [registered_name] = Registry.keys(application_process.name_registry, self())
     before_receive = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_receive)])
-    Hobot.PubSub.subscribe(pub_sub, name, topic, before_receive)
+    Hobot.PubSub.subscribe(application_process, name, topic, before_receive)
   end
 
-  def publish(pub_sub, name, topic, ref, data, name_registry, task_supervisor, middleware) do
-    [registered_name] = Registry.keys(name_registry, self())
+  def publish(%Hobot.ApplicationProcess{} = application_process, name, topic, ref, data, middleware) do
+    [registered_name] = Registry.keys(application_process.name_registry, self())
     before_publish = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_publish)])
-    Hobot.PubSub.publish(pub_sub, name, topic, ref, data, task_supervisor, before_publish)
+    Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
   end
 
-  def reply(adapter_name, ref, data, name_registry, task_supervisor, middleware) do
-    [registered_name] = Registry.keys(name_registry, self())
+  def reply(%Hobot.ApplicationProcess{} = application_process, adapter_name, ref, data, middleware) do
+    [registered_name] = Registry.keys(application_process.name_registry, self())
     before_reply = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_reply)])
     reply = {:reply, ref, data}
-    Task.Supervisor.start_child(task_supervisor, fn ->
+    Task.Supervisor.start_child(application_process.task_supervisor, fn ->
       case Hobot.Middleware.apply_middleware(before_reply, reply) do
         {:ok, value} ->
-          GenServer.cast({:via, Registry, {name_registry, adapter_name}}, value)
+          GenServer.cast({:via, Registry, {application_process.name_registry, adapter_name}}, value)
         {:halt, value} ->
           # TODO: Better Logging
           IO.inspect {:halt, value}
@@ -35,20 +35,20 @@ defmodule Hobot.Bot do
     end)
   end
 
-  def make_context(name, adapter, handlers_with_index, name_registry, pub_sub, task_supervisor) do
+  def make_context(name, adapter, handlers_with_index, %Hobot.ApplicationProcess{} = application_process) do
     middleware = middleware(name, adapter, handlers_with_index)
     %{
       context: context(name),
-      task_supervisor: task_supervisor,
-      name_registry: name_registry,
-      pub_sub: pub_sub,
+      task_supervisor: application_process.task_supervisor,
+      name_registry: application_process.name_registry,
+      pub_sub: application_process.pub_sub,
       adapter: adapter(name),
       handler: &(handler(name, &1)),
       middleware: middleware,
-      subscribe: &(subscribe(pub_sub, name, &1, name_registry, middleware)),
-      publish: &(publish(pub_sub, name, &1, &2, &3, name_registry, task_supervisor, middleware)),
-      unsubscribe: &(Hobot.PubSub.unsubscribe(pub_sub, name, &1)),
-      reply: &(reply(adapter(name), &1, &2, name_registry, task_supervisor, middleware))
+      subscribe: &(subscribe(application_process, name, &1, middleware)),
+      publish: &(publish(application_process, name, &1, &2, &3, middleware)),
+      unsubscribe: &(Hobot.PubSub.unsubscribe(application_process.pub_sub, name, &1)),
+      reply: &(reply(application_process, adapter(name), &1, &2, middleware))
     }
   end
 
