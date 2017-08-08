@@ -8,16 +8,16 @@ defmodule Hobot.Bot do
     end
   end
 
-  def subscribe(%Hobot.ApplicationProcess{} = application_process, name, topic, middleware) do
+  def subscribe(%Hobot.ApplicationProcess{} = application_process, %Hobot.Topic{} = topic, middleware) do
     [registered_name] = Registry.keys(application_process.name_registry, self())
     before_receive = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_receive)])
-    Hobot.PubSub.subscribe(application_process, name, topic, before_receive)
+    Hobot.PubSub.subscribe(application_process, topic, before_receive)
   end
 
-  def publish(%Hobot.ApplicationProcess{} = application_process, name, topic, ref, data, middleware) do
+  def publish(%Hobot.ApplicationProcess{} = application_process, %Hobot.Topic{} = topic, ref, data, middleware) do
     [registered_name] = Registry.keys(application_process.name_registry, self())
     before_publish = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_publish)])
-    Hobot.PubSub.publish(application_process, name, topic, ref, data, before_publish)
+    Hobot.PubSub.publish(application_process, topic, ref, data, before_publish)
   end
 
   def reply(%Hobot.ApplicationProcess{} = application_process, adapter_name, ref, data, middleware) do
@@ -45,9 +45,9 @@ defmodule Hobot.Bot do
       adapter: adapter(name),
       handler: &(handler(name, &1)),
       middleware: middleware,
-      subscribe: &(subscribe(application_process, name, &1, middleware)),
-      publish: &(publish(application_process, name, &1, &2, &3, middleware)),
-      unsubscribe: &(Hobot.PubSub.unsubscribe(application_process.pub_sub, name, &1)),
+      subscribe: &(subscribe(application_process, %Hobot.Topic{bot_name: name, value: &1}, middleware)),
+      publish: &(publish(application_process, %Hobot.Topic{bot_name: name, value: &1}, &2, &3, middleware)),
+      unsubscribe: &(Hobot.PubSub.unsubscribe(application_process.pub_sub, %Hobot.Topic{bot_name: name, value: &1})),
       reply: &(reply(application_process, adapter(name), &1, &2, middleware))
     }
   end
