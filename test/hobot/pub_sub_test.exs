@@ -65,6 +65,7 @@ defmodule Hobot.PubSubTest do
 
   setup context do
     application_process = %Hobot.ApplicationProcess {
+      logger: Logger,
       name_registry: Module.concat([__MODULE__, "NameRegistry", context.test]),
       pub_sub: Module.concat([__MODULE__, "PubSubRegistry", context.test]),
       task_supervisor: Module.concat([__MODULE__, "TaskSupervisor", context.test])

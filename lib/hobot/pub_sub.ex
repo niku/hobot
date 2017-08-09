@@ -19,15 +19,13 @@ defmodule Hobot.PubSub do
                   {:ok, value} ->
                     GenServer.cast(pid, value)
                   {:halt, value} ->
-                    # TODO: Better Logging
-                    IO.inspect {:halt, value}
+                    application_process.logger.debug("halted at before receive. readon: #{inspect value}")
                 end
               end)
             end
           end)
         {:halt, value} ->
-          # TODO: Better Logging
-          IO.inspect {:halt, value}
+          application_process.logger.debug("halted at before publish. readon: #{inspect value}")
       end
     end)
   end

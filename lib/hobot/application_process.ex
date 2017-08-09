@@ -3,7 +3,7 @@ defmodule Hobot.ApplicationProcess do
   Processes associated with the Application
   """
 
-  @processes [:name_registry, :pub_sub, :task_supervisor]
+  @processes [:name_registry, :pub_sub, :task_supervisor, :logger]
   @enforce_keys @processes
   defstruct @processes
 end

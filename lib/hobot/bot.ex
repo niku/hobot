@@ -1,4 +1,6 @@
 defmodule Hobot.Bot do
+  require Logger
+
   def context(name), do: Enum.join([name, "Context"], ".")
   def adapter(name), do: Enum.join([name, "Adapter"], ".")
   def handler(name, index), do: Enum.join([name, "Handler#{index}"], ".")
@@ -29,8 +31,7 @@ defmodule Hobot.Bot do
         {:ok, value} ->
           GenServer.cast({:via, Registry, {application_process.name_registry, adapter_name}}, value)
         {:halt, value} ->
-          # TODO: Better Logging
-          IO.inspect {:halt, value}
+          application_process.logger.debug("halted at before reply. readon: #{inspect value}")
       end
     end)
   end
