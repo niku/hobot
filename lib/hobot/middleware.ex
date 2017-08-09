@@ -18,5 +18,5 @@ defmodule Hobot.Middleware do
   defp do_apply_middleware(_, {:halt, value}), do: {:halt, value}
   defp do_apply_middleware([], {:ok, value}), do: {:ok, value}
   defp do_apply_middleware([h|t], {:ok, value}) when is_function(h), do: do_apply_middleware(t, apply(h, [value]))
-  defp do_apply_middleware([{m,f}|t], {:ok, value}) when is_atom(m) and is_atom(f), do: do_apply_middleware(t, apply(m, f, [value]))
+  defp do_apply_middleware([{m, f}|t], {:ok, value}) when is_atom(m) and is_atom(f), do: do_apply_middleware(t, apply(m, f, [value]))
 end
