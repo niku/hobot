@@ -12,20 +12,30 @@ defmodule Hobot.PubSub do
     Task.Supervisor.start_child(application_process.task_supervisor, fn ->
       case Hobot.Middleware.apply_middleware(before_publish, message) do
         {:ok, value} ->
-          Registry.dispatch(application_process.pub_sub, topic, fn entries ->
-            for {pid, before_receive} <- entries do
-              Task.Supervisor.start_child(application_process.task_supervisor, fn ->
-                case Hobot.Middleware.apply_middleware(before_receive, value) do
-                  {:ok, value} ->
-                    GenServer.cast(pid, value)
-                  {:halt, value} ->
-                    application_process.logger.debug("halted at before receive. readon: #{inspect value}")
-                end
-              end)
-            end
-          end)
+          dispatch(application_process, topic, value)
         {:halt, value} ->
           application_process.logger.debug("halted at before publish. readon: #{inspect value}")
+      end
+    end)
+  end
+
+  @doc false
+  def dispatch(application_process, topic, message) do
+    Registry.dispatch(application_process.pub_sub, topic, fn entries ->
+      for {pid, before_receive} <- entries do
+        cast_to_process(application_process, pid, message, before_receive)
+      end
+    end)
+  end
+
+  @doc false
+  def cast_to_process(application_process, pid, message, before_receive) do
+    Task.Supervisor.start_child(application_process.task_supervisor, fn ->
+      case Hobot.Middleware.apply_middleware(before_receive, message) do
+        {:ok, value} ->
+          GenServer.cast(pid, value)
+        {:halt, value} ->
+          application_process.logger.debug("halted at before receive. readon: #{inspect value}")
       end
     end)
   end
