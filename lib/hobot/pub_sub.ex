@@ -1,4 +1,8 @@
 defmodule Hobot.PubSub do
+  @moduledoc """
+  Functions that work on Registry to use a PubSub in Hobot application.
+  """
+
   def subscribe(%Hobot.ApplicationProcess{} = application_process, %Hobot.Topic{} = topic, before_receive) do
     Registry.register(application_process.pub_sub, topic, before_receive)
   end

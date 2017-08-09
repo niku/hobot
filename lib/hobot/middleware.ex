@@ -1,4 +1,8 @@
 defmodule Hobot.Middleware do
+  @moduledoc """
+  Functions to use middlewares in Hobot application.
+  """
+
   @default %{
     before_publish: [],
     before_receive: [],

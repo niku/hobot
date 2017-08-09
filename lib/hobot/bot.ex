@@ -1,4 +1,8 @@
 defmodule Hobot.Bot do
+  @moduledoc """
+  Functions to make a context as a bot.
+  """
+
   require Logger
 
   def context(name), do: Enum.join([name, "Context"], ".")

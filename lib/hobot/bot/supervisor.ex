@@ -1,4 +1,6 @@
 defmodule Hobot.Bot.Supervisor do
+  @moduledoc false
+
   use Supervisor
 
   def start_link(arg, options \\ []) do
