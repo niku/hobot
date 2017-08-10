@@ -13,16 +13,39 @@ defmodule Hobot.Bot.Supervisor do
     children = [
       %{
         id: context.context,
-        start: {Agent, :start_link, [fn -> context end, [name: build_via_name(context.name_registry, context.context)]]}
+        start: {
+          Agent,
+          :start_link,
+          [
+            fn -> context end,
+            [name: build_via_name(context.name_registry, context.context)]
+          ]
+        }
       },
       %{
         id: context.adapter,
-        start: {GenServer, :start_link, [adapter.module, build_args(adapter, context), build_options(adapter, context, context.adapter)]}
+        start: {
+          GenServer,
+          :start_link,
+          [
+            adapter.module,
+            build_args(adapter, context),
+            build_options(adapter, context, context.adapter)
+          ]
+        }
       }
     ] ++ for {handler, index} <- handlers_with_index do
       %{
         id: apply(context.handler, [index]),
-        start: {GenServer, :start_link, [handler.module, build_args(handler, context), build_options(handler, context, apply(context.handler, [index]))]}
+        start: {
+          GenServer,
+          :start_link,
+          [
+            handler.module,
+            build_args(handler, context),
+            build_options(handler, context, apply(context.handler, [index]))
+          ]
+        }
       }
     end
 
