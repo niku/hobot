@@ -15,7 +15,7 @@ defmodule Hobot.Handlers.Echo do
     {:noreply, state}
   end
 
-  def terminate(reason, {topics, context}) do
+  def terminate(reason, {context, topics}) do
     for topic <- topics, do: apply(context.unsubscribe, [topic])
     reason
   end
