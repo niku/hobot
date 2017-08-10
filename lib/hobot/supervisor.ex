@@ -3,14 +3,13 @@ defmodule Hobot.Supervisor do
 
   use Supervisor
 
-  def start_link(args) do
-    map_as_args = Enum.into(args, Map.new)
-    Supervisor.start_link(__MODULE__, map_as_args, name: __MODULE__)
+  def start_link([]) do
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(%{name_registry: _, task_supervisor: _} = args) do
+  def init([]) do
     Supervisor.init([
-      Supervisor.child_spec(Hobot.Bot.Supervisor, start: {Hobot.Bot.Supervisor, :start_link, [args]})
+      Supervisor.child_spec(Hobot.Bot.Supervisor, start: {Hobot.Bot.Supervisor, :start_link, []})
     ], strategy: :simple_one_for_one)
   end
 end

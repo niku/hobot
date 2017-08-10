@@ -18,7 +18,7 @@ defmodule Hobot.Application do
         id: @pub_sub,
       },
       {Task.Supervisor, name: @task_supervisor},
-      {Hobot.Supervisor, name_registry: @name_registry, task_supervisor: @task_supervisor}
+      Hobot.Supervisor
     ]
 
     opts = [strategy: :one_for_one, name: Hobot.ApplicationSupervisor]
