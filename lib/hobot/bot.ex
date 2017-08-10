@@ -60,8 +60,4 @@ defmodule Hobot.Bot do
       reply: &(reply(application_process, adapter(name), &1, &2, middleware))
     }
   end
-
-  def get_context(name) do
-    Agent.get({:via, Registry, {Hobot.NameRegistry, context(name)}}, &(&1))
-  end
 end

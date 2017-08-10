@@ -18,4 +18,23 @@ defmodule Hobot do
          handlers: handlers_with_index,
          application_process: application_process}])
   end
+
+  def context(value, name_registry \\ Hobot.Application.name_registry())
+
+  def context(name, name_registry) when is_binary(name) do
+    Agent.get({:via, Registry, {name_registry, Hobot.Bot.context(name)}}, &(&1))
+  catch
+    :exit, _ ->
+      nil
+  end
+
+  def context(pid, _name_registry) when is_pid(pid) do
+    children = Supervisor.which_children(pid)
+    case Enum.find(children, fn {process_name, _, _, _} ->  Regex.match?(~r"Context", process_name) end) do
+      {context_process_name, _, _, _} ->
+        Agent.get({:via, Registry, {Hobot.Application.name_registry(), context_process_name}}, &(&1))
+      _ ->
+        nil
+    end
+  end
 end
