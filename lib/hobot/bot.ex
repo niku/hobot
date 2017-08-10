@@ -20,6 +20,10 @@ defmodule Hobot.Bot do
     Hobot.PubSub.subscribe(application_process, topic, before_receive)
   end
 
+  def unsubscribe(%Hobot.ApplicationProcess{} = application_process, %Hobot.Topic{} = topic) do
+    Hobot.PubSub.unsubscribe(application_process, topic)
+  end
+
   def publish(%Hobot.ApplicationProcess{} = application_process, %Hobot.Topic{} = topic, ref, data, middleware) do
     [registered_name] = Registry.keys(application_process.name_registry, self())
     before_publish = get_in(middleware, [Access.key!(registered_name), Access.key!(:before_publish)])
@@ -52,7 +56,7 @@ defmodule Hobot.Bot do
       middleware: middleware,
       subscribe: &(subscribe(application_process, %Hobot.Topic{bot_name: name, value: &1}, middleware)),
       publish: &(publish(application_process, %Hobot.Topic{bot_name: name, value: &1}, &2, &3, middleware)),
-      unsubscribe: &(Hobot.PubSub.unsubscribe(application_process.pub_sub, %Hobot.Topic{bot_name: name, value: &1})),
+      unsubscribe: &(unsubscribe(application_process, %Hobot.Topic{bot_name: name, value: &1})),
       reply: &(reply(application_process, adapter(name), &1, &2, middleware))
     }
   end
