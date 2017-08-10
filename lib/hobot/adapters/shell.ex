@@ -5,29 +5,24 @@ defmodule Hobot.Adapters.Shell do
 
   use GenServer
 
-  @default_prompt "> "
-
-  def gets(send_to, prompt \\ @default_prompt) do
-    line =
-      IO.gets(prompt)
-      |> String.trim_trailing
-    case line do
-      "quit" ->
-        # Don't continue, just finish.
-        nil
+  def gets(device \\ :stdio, prompt, send_to) do
+    with x when is_binary(x) <- IO.gets(device, prompt),
+         line when line !== "quit" <- String.trim_trailing(x) do
+      send(send_to, line)
+      gets(device, prompt, send_to)
+    else
       _ ->
-        send(send_to, line)
-        gets(send_to, prompt)
+        nil
     end
   end
 
-  def handle_cast({:reply, _ref, data}, state) do
-    IO.puts(inspect(data))
+  def handle_cast({:reply, _ref, data}, {_context, device} = state) do
+    IO.puts(device, inspect(data))
     {:noreply, state}
   end
 
-  def handle_info(data, context) do
+  def handle_info(data, {context, _device} = state) do
     apply(context.publish, ["on_message", make_ref(), data])
-    {:noreply, context}
+    {:noreply, state}
   end
 end
