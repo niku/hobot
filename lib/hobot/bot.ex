@@ -8,8 +8,8 @@ defmodule Hobot.Bot do
   def context(name), do: Enum.join([name, "Context"], ".")
   def adapter(name), do: Enum.join([name, "Adapter"], ".")
   def handler(name, index), do: Enum.join([name, "Handler#{index}"], ".")
-  def middleware(atom, adapter, handlers_with_index) do
-    for {handler_conf, index} <- handlers_with_index, into: %{adapter(atom) => Hobot.Middleware.build(adapter)} do
+  def middleware(atom, adapter, handlers) do
+    for {handler_conf, index} <- handlers, into: %{adapter(atom) => Hobot.Middleware.build(adapter)} do
       {handler(atom, index), Hobot.Middleware.build(handler_conf)}
     end
   end
@@ -44,8 +44,8 @@ defmodule Hobot.Bot do
     end)
   end
 
-  def make_context(name, adapter, handlers_with_index, %Hobot.ApplicationProcess{} = application_process) do
-    middleware = middleware(name, adapter, handlers_with_index)
+  def make_context(name, adapter, handlers, %Hobot.ApplicationProcess{} = application_process) do
+    middleware = middleware(name, adapter, handlers)
     %{
       context: context(name),
       task_supervisor: application_process.task_supervisor,

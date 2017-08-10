@@ -8,8 +8,7 @@ defmodule Hobot.Bot.Supervisor do
   end
 
   def init(%{name: name, adapter: adapter, handlers: handlers, application_process: %Hobot.ApplicationProcess{} = application_process}) do
-    handlers_with_index = Enum.with_index(handlers)
-    context = Hobot.Bot.make_context(name, adapter, handlers_with_index, application_process)
+    context = Hobot.Bot.make_context(name, adapter, handlers, application_process)
     children = [
       %{
         id: context.context,
@@ -34,7 +33,7 @@ defmodule Hobot.Bot.Supervisor do
           ]
         }
       }
-    ] ++ for {handler, index} <- handlers_with_index do
+    ] ++ for {handler, index} <- handlers do
       %{
         id: apply(context.handler, [index]),
         start: {

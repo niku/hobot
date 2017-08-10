@@ -11,10 +11,11 @@ defmodule Hobot do
       task_supervisor: Keyword.get(options, :task_supervisor, Hobot.Application.task_supervisor())
     }
 
+    handlers_with_index = Enum.with_index(handlers)
     Supervisor.start_child(Hobot.Supervisor,
       [%{name: name,
          adapter: adapter,
-         handlers: handlers,
+         handlers: handlers_with_index,
          application_process: application_process}])
   end
 end
