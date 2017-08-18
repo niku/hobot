@@ -38,7 +38,7 @@ defmodule Hobot do
     end
   end
 
-  def pid(name, name_registry \\ Hobot.Application.name_registry()) do
+  def pid(name, _name_registry \\ Hobot.Application.name_registry()) do
     case Registry.lookup(Hobot.NameRegistry, name) do
       [{pid, _}] -> pid
       [] -> nil
