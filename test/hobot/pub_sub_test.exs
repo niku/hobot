@@ -165,7 +165,7 @@ defmodule Hobot.PubSubTest do
       data = "Hello world!"
       before_publish = []
       {:ok, _pid}  = Hobot.PubSub.publish(application_process, topic, ref, data, before_publish)
-      assert_receive {:broadcast, ^topic_value, ^ref, ^data}, 10 # timeout 10ms
+      assert_receive {:broadcast, ^topic_value, ^ref, ^data}, 100 # timeout 100ms
     end
   end
 
@@ -199,7 +199,7 @@ defmodule Hobot.PubSubTest do
     {:ok, _pid}  = Hobot.PubSub.publish(application_process, topic, ref, data, before_publish)
 
     # Waiting for terminating processes
-    Process.sleep(10)
+    Process.sleep(100)
 
     assert length(Registry.lookup(application_process.pub_sub, topic)) == 1
   end
