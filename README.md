@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/niku/hobot.svg?branch=master)](https://travis-ci.org/niku/hobot)
 
-A bot framework for ErlangVM(beam)
+A bot framework for Erlang VM(BEAM). Plugins for Hobot are just :gen_server so you can meke a plugin with any language on the Erlang VM.
+
+You can see [an adapter sample](https://github.com/niku/hobot/tree/v0.2.0/lib/hobot/adapters/shell.ex) and [a handler sample](https://github.com/niku/hobot/tree/v0.2.0/lib/hobot/handlers/echo.ex).
 
 ## Usage
 
