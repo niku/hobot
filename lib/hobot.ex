@@ -1,6 +1,22 @@
 defmodule Hobot do
   @moduledoc """
   A bot framework for ErlangVM(beam)
+
+  ## Examples
+
+  For example, we can create an echo bot following like:
+
+  ```
+  bot_name = "EchoBot"
+  adapter = %{module: Hobot.Adapters.Shell}
+  handlers = [%{module: Hobot.Handlers.Echo, args: [["on_message"]]}]
+  {:ok, bot_pid} = Hobot.create(bot_name, adapter, handlers)
+
+  # Check behavior created bot
+  context = Hobot.context(bot_pid)
+  adapter_pid = Hobot.pid(context.adapter)
+  send(adapter_pid, "hello") # => "hello"
+  ```
   """
 
   def create(name, adapter, handlers, options \\ []) do
