@@ -16,6 +16,14 @@ defmodule Hobot.Adapters.Shell do
     end
   end
 
+  def init({context, device}) do
+    {:ok, {context, device}}
+  end
+
+  def init(context) do
+    {:ok, {context, Process.group_leader()}}
+  end
+
   def handle_cast({:reply, _ref, data}, {_context, device} = state) do
     IO.puts(device, inspect(data))
     {:noreply, state}
