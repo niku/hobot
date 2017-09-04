@@ -60,4 +60,14 @@ defmodule Hobot do
       [] -> nil
     end
   end
+
+  def child_spec(opts \\ []) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :create, opts},
+      restart: :permanent,
+      shutdown: 5000,
+      type: :worker
+    }
+  end
 end
