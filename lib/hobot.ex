@@ -9,7 +9,7 @@ defmodule Hobot do
   ```
   bot_name = "EchoBot"
   adapter = %{module: Hobot.Plugin.Adapter.Shell}
-  handlers = [%{module: Hobot.Handlers.Echo, args: [["on_message"]]}]
+  handlers = [%{module: Hobot.Plugin.Handler.Echo, args: [["on_message"]]}]
   {:ok, bot_pid} = Hobot.create(bot_name, adapter, handlers)
 
   # Check behavior created bot

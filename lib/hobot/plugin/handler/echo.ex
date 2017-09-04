@@ -1,4 +1,4 @@
-defmodule Hobot.Handlers.Echo do
+defmodule Hobot.Plugin.Handler.Echo do
   @moduledoc """
   Echoes input.
   """
