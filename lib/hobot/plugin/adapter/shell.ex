@@ -1,4 +1,4 @@
-defmodule Hobot.Adapters.Shell do
+defmodule Hobot.Plugin.Adapter.Shell do
   @moduledoc """
   Adapts stdio for hobot.
   """

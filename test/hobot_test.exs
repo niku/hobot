@@ -5,7 +5,7 @@ defmodule HobotTest do
     {:ok, io_device} = StringIO.open("")
 
     bot_name = "Foo"
-    adapter = %{module: Hobot.Adapters.Shell, args: [io_device]}
+    adapter = %{module: Hobot.Plugin.Adapter.Shell, args: [io_device]}
     handlers = [%{module: Hobot.Handlers.Echo, args: [["on_message"]]}]
     {:ok, bot_pid} = Hobot.create(bot_name, adapter, handlers)
 
