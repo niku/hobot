@@ -3,8 +3,6 @@ defmodule Hobot.Bot do
   Functions to make a context as a bot.
   """
 
-  require Logger
-
   def context(name), do: Enum.join([name, "Context"], ".")
   def adapter(name), do: Enum.join([name, "Adapter"], ".")
   def handler(name, index), do: Enum.join([name, "Handler#{index}"], ".")
@@ -39,7 +37,7 @@ defmodule Hobot.Bot do
         {:ok, value} ->
           GenServer.cast({:via, Registry, {application_process.name_registry, adapter_name}}, value)
         {:halt, value} ->
-          application_process.logger.debug("halted at before reply. reason: #{inspect value}")
+          application_process.logger.bare_log(:debug, "halted at before reply. reason: #{inspect value}")
       end
     end)
   end
