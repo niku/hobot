@@ -39,7 +39,7 @@ defmodule Hobot.Bot do
         {:ok, value} ->
           GenServer.cast({:via, Registry, {application_process.name_registry, adapter_name}}, value)
         {:halt, value} ->
-          application_process.logger.debug("halted at before reply. readon: #{inspect value}")
+          application_process.logger.debug("halted at before reply. reason: #{inspect value}")
       end
     end)
   end

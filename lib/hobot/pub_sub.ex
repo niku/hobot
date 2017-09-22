@@ -18,7 +18,7 @@ defmodule Hobot.PubSub do
         {:ok, value} ->
           dispatch(application_process, topic, value)
         {:halt, value} ->
-          application_process.logger.debug("halted at before publish. readon: #{inspect value}")
+          application_process.logger.debug("halted at before publish. reason: #{inspect value}")
       end
     end)
   end
@@ -39,7 +39,7 @@ defmodule Hobot.PubSub do
         {:ok, value} ->
           GenServer.cast(pid, value)
         {:halt, value} ->
-          application_process.logger.debug("halted at before receive. readon: #{inspect value}")
+          application_process.logger.debug("halted at before receive. reason: #{inspect value}")
       end
     end)
   end
