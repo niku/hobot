@@ -1,6 +1,6 @@
 defmodule Hobot do
   @moduledoc """
-  A bot framework for ErlangVM(beam)
+  A bot framework working on Erlang VM(Beam)
 
   ## Examples
 
