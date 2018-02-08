@@ -1,5 +1,6 @@
 defmodule HobotTest do
   use ExUnit.Case
+  doctest Hobot
 
   test "create a bot and it works well" do
     {:ok, io_device} = StringIO.open("")

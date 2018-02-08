@@ -13,9 +13,9 @@ You can see [an adapter sample](https://github.com/niku/hobot/tree/v0.2.0/lib/ho
 % cd hobot
 % mix deps.get
 % iex -S mix
-Erlang/OTP 20 [erts-9.0] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+Erlang/OTP 20 [erts-9.2] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
 
-Interactive Elixir (1.5.1) - press Ctrl+C to exit (type h() ENTER for help)
+Interactive Elixir (1.6.1) - press Ctrl+C to exit (type h() ENTER for help)
 iex(1)> bot_name = "EchoBot"
 iex(2)> adapter_conf = %{module: Hobot.Plugin.Adapter.Shell, args: [Process.group_leader()]}
 iex(3)> handlers_conf = [%{module: Hobot.Plugin.Handler.Echo, args: [["on_message"]]}]
@@ -36,12 +36,17 @@ Also, a sample application which works is [eloido](https://github.com/niku/eloid
 
 ## Installation
 
-The package can be installed by adding `hobot` to your list of dependencies in `mix.exs`:
+If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+by adding `hobot` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:hobot, "~> 0.2.0"}]
+  [
+    {:hobot, "~> 0.3.0"}
+  ]
 end
 ```
 
-The docs can be found at [https://hexdocs.pm/hobot](https://hexdocs.pm/hobot).
+Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
+and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
+be found at [https://hexdocs.pm/hobot](https://hexdocs.pm/hobot).

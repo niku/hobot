@@ -1,15 +1,9 @@
 language: elixir
 sudo: false
 otp_release:
-  - 20.0
+  - 20.2.2
 elixir:
-  - 1.5.0
-env:
-  global:
-    # Follow other language's environment
-    # e.g.) `RACK_ENV=test` has been setted as Default Environment Variables
-    # https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
-    - MIX_ENV=test
+  - 1.6
 cache:
   directories:
     - _build
@@ -18,14 +12,18 @@ before_install:
   # https://docs.travis-ci.com/user/encrypting-files/
   # Decrypt the file about configuration(auth and so on) of hex.pm
   - mkdir -p ~/.hex/
+  # You need execution command `travis encrypt-file ~/.hex/hex.config` in the repository and adding generated line following like:
+  # - openssl aes-256-cbc -K $encrypted_36030c2fae51_key -iv $encrypted_36030c2fae51_iv -in hex.config.enc -out ~/.hex/hex.config -d
   - openssl aes-256-cbc -K $encrypted_36030c2fae51_key -iv $encrypted_36030c2fae51_iv -in hex.config.enc -out ~/.hex/hex.config -d
-
 script:
+  - MIX_ENV=test mix test
+  # You need to compile following the line at first in the development environment (MIX_ENV=dev)
+  - mix compile --warnings-as-errors
+  - mix format --check-formatted
   - mix credo --strict
   # https://github.com/jeremyjh/dialyxir#command-line-options
   # > exit immediately with same exit status as dialyzer. useful for CI
   - mix dialyzer --halt-exit-status
-  - mix test
 deploy:
    # https://docs.travis-ci.com/user/deployment/script/
    # > `script` must be a scalar pointing to an executable file or command.
@@ -34,7 +32,7 @@ deploy:
    # `>-` indicates the line folding.
    script: >-
      mix deps.get &&
-     (echo "$HEX_PASSPHRASE"\\nY | mix hex.publish) &&
+     echo $HEX_PASSPHRASE | mix hex.publish --no-confirm &&
      mix clean &&
      mix deps.clean --all
    on:
