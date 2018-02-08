@@ -8,8 +8,14 @@ defmodule Hobot.Supervisor do
   end
 
   def init([]) do
-    Supervisor.init([
-      Supervisor.child_spec(Hobot.Bot.Supervisor, start: {Hobot.Bot.Supervisor, :start_link, []})
-    ], strategy: :simple_one_for_one)
+    Supervisor.init(
+      [
+        Supervisor.child_spec(
+          Hobot.Bot.Supervisor,
+          start: {Hobot.Bot.Supervisor, :start_link, []}
+        )
+      ],
+      strategy: :simple_one_for_one
+    )
   end
 end

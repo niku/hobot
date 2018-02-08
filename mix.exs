@@ -36,9 +36,11 @@ defmodule Hobot.MixProject do
   end
 
   defp package do
-    [maintainers: ["niku"],
-     licenses: ["MIT"],
-     links: %{"GitHub" => "https://github.com/niku/hobot"}]
+    [
+      maintainers: ["niku"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/niku/hobot"}
+    ]
   end
 
   defp dialyzer do

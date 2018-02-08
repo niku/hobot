@@ -10,12 +10,16 @@ defmodule Hobot.Application do
   def start(_type, _args) do
     children = [
       %{
-        start: {Registry, :start_link, [[keys: :unique, name: @name_registry, partitions: System.schedulers_online()]]},
-        id: @name_registry,
+        start:
+          {Registry, :start_link,
+           [[keys: :unique, name: @name_registry, partitions: System.schedulers_online()]]},
+        id: @name_registry
       },
       %{
-        start: {Registry, :start_link, [[keys: :duplicate, name: @pub_sub, partitions: System.schedulers_online()]]},
-        id: @pub_sub,
+        start:
+          {Registry, :start_link,
+           [[keys: :duplicate, name: @pub_sub, partitions: System.schedulers_online()]]},
+        id: @pub_sub
       },
       {Task.Supervisor, name: @task_supervisor},
       Hobot.Supervisor

@@ -14,7 +14,8 @@ defmodule HobotTest do
     adapter_pid = Hobot.pid(context.adapter)
 
     send(adapter_pid, "hello")
-    Process.sleep(10) # wait async io
+    # wait async io
+    Process.sleep(10)
     assert StringIO.flush(io_device) == "\"hello\"\n"
   end
 end
