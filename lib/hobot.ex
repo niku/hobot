@@ -29,14 +29,12 @@ defmodule Hobot do
 
     handlers_with_index = Enum.with_index(handlers)
 
-    Supervisor.start_child(Hobot.Supervisor, [
-      %{
-        name: name,
-        adapter: adapter,
-        handlers: handlers_with_index,
-        application_process: application_process
-      }
-    ])
+    Hobot.Supervisor.start_child(%{
+      name: name,
+      adapter: adapter,
+      handlers: handlers_with_index,
+      application_process: application_process
+    })
   end
 
   def context(value, name_registry \\ Hobot.Application.name_registry())

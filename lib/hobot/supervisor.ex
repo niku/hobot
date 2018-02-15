@@ -1,21 +1,18 @@
 defmodule Hobot.Supervisor do
   @moduledoc false
 
-  use Supervisor
+  use DynamicSupervisor
 
   def start_link([]) do
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+    DynamicSupervisor.start_link(__MODULE__, [], name: __MODULE__)
+  end
+
+  def start_child(arg) do
+    spec = Supervisor.Spec.worker(Hobot.Bot.Supervisor, [arg])
+    DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
   def init([]) do
-    Supervisor.init(
-      [
-        Supervisor.child_spec(
-          Hobot.Bot.Supervisor,
-          start: {Hobot.Bot.Supervisor, :start_link, []}
-        )
-      ],
-      strategy: :simple_one_for_one
-    )
+    DynamicSupervisor.init(strategy: :one_for_one)
   end
 end
