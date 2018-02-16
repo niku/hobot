@@ -32,7 +32,7 @@ deploy:
    # `>-` indicates the line folding.
    script: >-
      mix deps.get &&
-     echo $HEX_PASSPHRASE | mix hex.publish --no-confirm &&
+     echo $HEX_LOCAL_PASSWORD | mix hex.publish --no-confirm &&
      mix clean &&
      mix deps.clean --all
    on:
