@@ -42,7 +42,7 @@ by adding `hobot` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:hobot, "~> 0.3.0"}
+    {:hobot, "~> 0.4.0"}
   ]
 end
 ```

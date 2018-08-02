@@ -5,12 +5,11 @@ defmodule Hobot.MixProject do
     [
       app: :hobot,
       version: "0.3.0",
-      elixir: "~> 1.6",
+      elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
-      package: package(),
-      dialyzer: dialyzer()
+      package: package()
     ]
   end
 
@@ -25,9 +24,9 @@ defmodule Hobot.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, ">= 0.0.0", only: [:dev, :test]},
-      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-      {:credo, "~> 0.8", only: [:dev, :test]}
+      {:ex_doc, "~> 0.19-rc", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3", only: :dev, runtime: false},
+      {:credo, "~> 0.10.0", only: :dev, runtime: false}
     ]
   end
 
@@ -39,11 +38,9 @@ defmodule Hobot.MixProject do
     [
       maintainers: ["niku"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/niku/hobot"}
+      links: %{
+        "GitHub" => "https://github.com/niku/hobot"
+      }
     ]
-  end
-
-  defp dialyzer do
-    []
   end
 end
